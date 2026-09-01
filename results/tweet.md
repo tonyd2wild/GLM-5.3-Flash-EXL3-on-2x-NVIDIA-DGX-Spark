@@ -50,3 +50,5 @@ Full write-up, method, isolation proof and the reasoning traces side by side in 
 Reply 1: article link (via Hootsuite). Reply 2: both recipes are public (NVFP4 launcher repo + the EXL3 kit: Reederey87, brandonmusic tr3-4bpw, turboderp exllamav3 for sm_121a). Credits in the article.
 
 Cards: results/card_nvfp4_vs_exl3.png (icons, pick) · results/card_nvfp4_vs_exl3_alt.png (plain). gpt-image-2, numbers verified against results/*.json.
+
+Cover (5:2, X Article header): results/cover_5x2.png (pick) · results/cover_5x2_alt.png (photo alt).
