@@ -1,27 +1,204 @@
 {
  "agent": {
-  "nvfp4_short": null,
-  "nvfp4_long": null,
-  "exl3_short": null,
-  "exl3_long": null
+  "nvfp4_short": {
+   "turns": 20,
+   "ctx_last": 3206,
+   "ttft_med_s": 1.28,
+   "ttft_p90_s": 2.01,
+   "ttft_first_s": 0.36,
+   "ttft_last_s": 2.1,
+   "decode_med_tok_s": 21.1,
+   "total_s": 158.1
+  },
+  "nvfp4_long": {
+   "turns": 10,
+   "ctx_last": 29222,
+   "ttft_med_s": 4.04,
+   "ttft_p90_s": 4.28,
+   "ttft_first_s": 17.43,
+   "ttft_last_s": 4.28,
+   "decode_med_tok_s": 20.6,
+   "total_s": 106.7
+  },
+  "exl3_short": {
+   "turns": 20,
+   "ctx_last": 3222,
+   "ttft_med_s": 0.96,
+   "ttft_p90_s": 1.08,
+   "ttft_first_s": 0.53,
+   "ttft_last_s": 1.1,
+   "decode_med_tok_s": 20.1,
+   "total_s": 161.5
+  },
+  "exl3_long": {
+   "turns": 10,
+   "ctx_last": 29212,
+   "ttft_med_s": 1.02,
+   "ttft_p90_s": 1.34,
+   "ttft_first_s": 32.57,
+   "ttft_last_s": 1.02,
+   "decode_med_tok_s": 19.9,
+   "total_s": 99.3
+  }
  },
- "determinism": {},
+ "determinism": {
+  "nvfp4": {
+   "runs": 3,
+   "n": 40,
+   "identical_outputs": 10,
+   "identical_pct": 25,
+   "score_flips": 8,
+   "score_flip_ids": [
+    "prose1",
+    "prose4",
+    "story1",
+    "story2",
+    "story3",
+    "sum2",
+    "sum5",
+    "fmt5"
+   ],
+   "auto_score_per_run": [
+    0.855,
+    0.876,
+    0.81
+   ],
+   "token_spread_median": 12,
+   "token_spread_max": 465,
+   "by_category": {
+    "coding": {
+     "n": 5,
+     "identical": 0,
+     "score_flips": 0
+    },
+    "reasoning": {
+     "n": 5,
+     "identical": 1,
+     "score_flips": 0
+    },
+    "json": {
+     "n": 5,
+     "identical": 4,
+     "score_flips": 0
+    },
+    "html": {
+     "n": 5,
+     "identical": 2,
+     "score_flips": 0
+    },
+    "prose": {
+     "n": 5,
+     "identical": 0,
+     "score_flips": 2
+    },
+    "narrative": {
+     "n": 5,
+     "identical": 0,
+     "score_flips": 3
+    },
+    "summary": {
+     "n": 5,
+     "identical": 0,
+     "score_flips": 2
+    },
+    "format": {
+     "n": 5,
+     "identical": 3,
+     "score_flips": 1
+    }
+   }
+  },
+  "exl3": {
+   "runs": 3,
+   "n": 40,
+   "identical_outputs": 9,
+   "identical_pct": 22,
+   "score_flips": 6,
+   "score_flip_ids": [
+    "code1",
+    "prose1",
+    "prose2",
+    "story1",
+    "story4",
+    "fmt4"
+   ],
+   "auto_score_per_run": [
+    0.846,
+    0.789,
+    0.815
+   ],
+   "token_spread_median": 14,
+   "token_spread_max": 719,
+   "by_category": {
+    "coding": {
+     "n": 5,
+     "identical": 0,
+     "score_flips": 1
+    },
+    "reasoning": {
+     "n": 5,
+     "identical": 0,
+     "score_flips": 0
+    },
+    "json": {
+     "n": 5,
+     "identical": 4,
+     "score_flips": 0
+    },
+    "html": {
+     "n": 5,
+     "identical": 3,
+     "score_flips": 0
+    },
+    "prose": {
+     "n": 5,
+     "identical": 0,
+     "score_flips": 2
+    },
+    "narrative": {
+     "n": 5,
+     "identical": 0,
+     "score_flips": 2
+    },
+    "summary": {
+     "n": 5,
+     "identical": 0,
+     "score_flips": 0
+    },
+    "format": {
+     "n": 5,
+     "identical": 2,
+     "score_flips": 1
+    }
+   }
+  }
+ },
  "power": {
   "nvfp4": {
    "nodes_w": [
-    null,
-    null
+    26.5,
+    24.2
    ],
-   "load": null,
-   "tok_per_joule": null
+   "load": {
+    "lane": "nvfp4",
+    "tokens": 8800,
+    "seconds": 71.6,
+    "tok_s": 123.0
+   },
+   "tok_per_joule": 2.426
   },
   "exl3": {
    "nodes_w": [
-    null,
-    null
+    34.9,
+    33.2
    ],
-   "load": null,
-   "tok_per_joule": null
+   "load": {
+    "lane": "exl3",
+    "tokens": 9600,
+    "seconds": 69.3,
+    "tok_s": 138.6
+   },
+   "tok_per_joule": 2.035
   }
  },
  "rows": [
@@ -61,8 +238,8 @@
    "category": "json",
    "auto_nvfp4": 1.0,
    "auto_exl3": 1.0,
-   "on_nvfp4": null,
-   "on_exl3": null,
+   "on_nvfp4": 1.0,
+   "on_exl3": 1.0,
    "judge_nvfp4": null,
    "judge_exl3": null,
    "judge_tie": null,
@@ -77,8 +254,8 @@
    "category": "html",
    "auto_nvfp4": 1.0,
    "auto_exl3": 1.0,
-   "on_nvfp4": null,
-   "on_exl3": null,
+   "on_nvfp4": 1.0,
+   "on_exl3": 1.0,
    "judge_nvfp4": 0,
    "judge_exl3": 1,
    "judge_tie": 4,
@@ -93,8 +270,8 @@
    "category": "prose",
    "auto_nvfp4": 0.75,
    "auto_exl3": 0.55,
-   "on_nvfp4": null,
-   "on_exl3": null,
+   "on_nvfp4": 1.0,
+   "on_exl3": 0.8,
    "judge_nvfp4": 1,
    "judge_exl3": 2,
    "judge_tie": 2,
@@ -109,8 +286,8 @@
    "category": "narrative",
    "auto_nvfp4": 0.893,
    "auto_exl3": 0.76,
-   "on_nvfp4": null,
-   "on_exl3": null,
+   "on_nvfp4": 0.8,
+   "on_exl3": 0.8,
    "judge_nvfp4": 3,
    "judge_exl3": 2,
    "judge_tie": 0,
@@ -125,8 +302,8 @@
    "category": "summary",
    "auto_nvfp4": 0.6,
    "auto_exl3": 0.7,
-   "on_nvfp4": null,
-   "on_exl3": null,
+   "on_nvfp4": 0.9,
+   "on_exl3": 0.9,
    "judge_nvfp4": 1,
    "judge_exl3": 1,
    "judge_tie": 3,
@@ -141,8 +318,8 @@
    "category": "format",
    "auto_nvfp4": 0.6,
    "auto_exl3": 0.96,
-   "on_nvfp4": null,
-   "on_exl3": null,
+   "on_nvfp4": 1.0,
+   "on_exl3": 1.0,
    "judge_nvfp4": 1,
    "judge_exl3": 1,
    "judge_tie": 3,
@@ -184,15 +361,15 @@
  },
  "overall_on": {
   "nvfp4": {
-   "auto_score": 1.0,
+   "auto_score": 0.963,
    "ttft_med_s": 0.36,
-   "decode_med_tok_s": 49.2,
+   "decode_med_tok_s": 45.4,
    "agg_tok_s_med": null
   },
   "exl3": {
-   "auto_score": 1.0,
-   "ttft_med_s": 0.32,
-   "decode_med_tok_s": 43.8,
+   "auto_score": 0.938,
+   "ttft_med_s": 0.28,
+   "decode_med_tok_s": 41.9,
    "agg_tok_s_med": null
   }
  },

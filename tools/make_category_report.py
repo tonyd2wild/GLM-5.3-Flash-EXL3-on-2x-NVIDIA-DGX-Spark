@@ -22,6 +22,7 @@ def watts(node):
     for line in open(p):
         try: vals.append(float(line.split(",")[0].replace("W", "").strip()))
         except ValueError: pass
+    vals = vals[8:66] if len(vals) >= 66 else vals   # the load window: samplers start ~6 s before the 60 s load
     return round(sum(vals) / len(vals), 1) if vals else None
 NODES = {"nvfp4": ("reddie", "spark4"), "exl3": ("bluey", "asusi")}
 PW = {l: [watts(n) for n in NODES[l]] for l in L}
