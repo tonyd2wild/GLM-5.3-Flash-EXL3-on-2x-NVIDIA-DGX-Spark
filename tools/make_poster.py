@@ -28,6 +28,9 @@ rn1=PN.get("warm_ttft_s",c1n.get("ttft_repeat_s",tn1)); re1=PE.get("warm_ttft_s"
 pln=PLN["rows"][-1] if PLN else None; ple=PLE["rows"][-1] if PLE else None
 c4n=C4N.get("overall",{}); c4e=C4E.get("overall",{})
 q40=CS.get("overall",{}); jt=CS.get("judge_total",{})
+AGS=CS.get("agent",{}); PWS=CS.get("power",{}); DTS=CS.get("determinism",{})
+def ag(l,t,k): g=AGS.get(f"{l}_{t}"); return g[k] if g else "—"
+def tpj(l): return (PWS.get(l,{}) or {}).get("tok_per_joule") or "—"
 def spread(D):
     return f"±{(D['c1_max']-D['c1_min'])/2/D['c1_med']*100:.1f}%" if D.get("c1_med") else "—"
 per_gain=[(r_n["per_stream_tok_s"]-r_e["per_stream_tok_s"])/r_e["per_stream_tok_s"]*100 for r_n,r_e in zip(N[1:5],E[1:5])]
@@ -90,8 +93,10 @@ grid(ax,[("c1 single-stream (n=5)",f"{c1n_v:.1f} tok/s",f"{c1e_v:.1f} tok/s",edg
  (f"Cold prefill, fresh {pln['prompt_tokens']//1000 if pln else 211}K prompt",f"{pln['cold_tok_s'] if pln else 0:,} tok/s",f"{ple['cold_tok_s'] if ple else 0:,} tok/s",edge(pln['cold_tok_s'],ple['cold_tok_s']) if (pln and ple) else "—"),
  ("Mixed load c4, 4 real prompts: agg / TTFT",f"{c4n.get('agg_tok_s_med','—')} / {c4n.get('ttft_med_s','—')}s",f"{c4e.get('agg_tok_s_med','—')} / {c4e.get('ttft_med_s','—')}s",edge(c4n.get('agg_tok_s_med',1),c4e.get('agg_tok_s_med',1))),
  ("Wall-to-wall at c1 / c6",f"{c1n['w2w_med_s']:.1f}s / {c6n['w2w_med_s']:.1f}s",f"{c1e['w2w_med_s']:.1f}s / {c6e['w2w_med_s']:.1f}s",edge(c1n['w2w_med_s'],c1e['w2w_med_s'],higher=False)+" at c1"),
+ ("Agent loop, 30K doc re-sent 10 turns: TTFT med / total",f"{ag('nvfp4','long','ttft_med_s')}s / {ag('nvfp4','long','total_s')}s",f"{ag('exl3','long','ttft_med_s')}s / {ag('exl3','long','total_s')}s",(edge(ag('nvfp4','long','total_s'),ag('exl3','long','total_s'),higher=False) if AGS.get('nvfp4_long') and AGS.get('exl3_long') else "—")),
+ ("Tokens per joule, GPU power, c4 load",f"{tpj('nvfp4')}",f"{tpj('exl3')}",(edge(tpj('nvfp4'),tpj('exl3')) if isinstance(tpj('nvfp4'),float) and isinstance(tpj('exl3'),float) else "—")),
  ("Run-to-run spread (c1, n=5)",spread(DN),spread(DE),"both stable")],
- cols_x=(0.03,0.36,0.60,0.82),top=0.79,fs=8.6,hdr=("","NVFP4","EXL3","Edge"),bold_last=True)
+ cols_x=(0.03,0.36,0.60,0.82),top=0.80,fs=8.2,hdr=("","NVFP4","EXL3","Edge"),bold_last=True)
 # sweep charts
 cs=[r["c"] for r in E]
 def sweep_ax(rect,key,ylabel,title,fmt):

@@ -12,6 +12,19 @@ L = ("nvfp4", "exl3"); CATS = ["coding", "reasoning", "json", "html", "prose", "
 C1 = {l: J(f"results/categories_{l}_off_c1.json") for l in L}; C4 = {l: J(f"results/categories_{l}_off_c4.json") for l in L}
 ON = {l: J(f"results/categories_{l}_on_c1.json") for l in L}; JD = J("results/judge_off.json"); PL = {l: J(f"results/prefill_len_{l}.json") for l in L}
 assert all(C1.values()), "run bench_categories.py (c1, off) on both lanes first"
+AG = {(l, t): J(f"results/agent_loop_{l}_{t}.json") for l in L for t in ("short", "long")}
+DET = J("results/determinism.json") or {}
+PWR = {l: J(f"results/power_load_{l}.json") for l in L}
+def watts(node):
+    p = f"results/power_{node}.csv"
+    if not os.path.exists(p): return None
+    vals = []
+    for line in open(p):
+        try: vals.append(float(line.split(",")[0].replace("W", "").strip()))
+        except ValueError: pass
+    return round(sum(vals) / len(vals), 1) if vals else None
+NODES = {"nvfp4": ("reddie", "spark4"), "exl3": ("bluey", "asusi")}
+PW = {l: [watts(n) for n in NODES[l]] for l in L}
 def s(d, l, c, k):
     x = d.get(l) if d else None; return (x["summary"].get(c, {}).get(k) if x else None)
 def fmt(v, nd=1, suf=""): return "—" if v is None else (f"{v:.{nd}f}{suf}" if isinstance(v, float) else f"{v}{suf}")
@@ -35,7 +48,13 @@ jt_all = {}
 if JD:
     for c, t in JD["tally"].items():
         for k, v in t.items(): jt_all[k] = jt_all.get(k, 0) + v
-summary = {"rows": rows, "overall": ov, "overall_c4": ov4, "overall_on": ovon, "judge_total": jt_all, "judge_model": (JD or {}).get("judge"),
+def tpj(l):
+    w = PW[l]; p = PWR[l]
+    if not p or any(x is None for x in w): return None
+    return round(p["tok_s"] / sum(w), 3)
+summary = {"agent": {f"{l}_{t}": ({k: AG[(l, t)][k] for k in ("turns", "ctx_last", "ttft_med_s", "ttft_p90_s", "ttft_first_s", "ttft_last_s", "decode_med_tok_s", "total_s")} if AG[(l, t)] else None) for l in L for t in ("short", "long")},
+           "determinism": DET, "power": {l: {"nodes_w": PW[l], "load": PWR[l], "tok_per_joule": tpj(l)} for l in L},
+           "rows": rows, "overall": ov, "overall_c4": ov4, "overall_on": ovon, "judge_total": jt_all, "judge_model": (JD or {}).get("judge"),
            "diff_items": diff, "prefill_len": {l: (PL[l]["rows"] if PL[l] else None) for l in L}, "n_prompts": C1["nvfp4"]["n"]}
 json.dump(summary, open("results/categories_summary.json", "w"), indent=1)
 # ---- markdown
@@ -52,6 +71,25 @@ if jt_all: md.append(f"Blind pairwise judge ({summary['judge_model']}), both ord
 if diff:
     md += ["", "Items where the auto score differed:"] + [f"- {d['id']} ({d['category']}): NVFP4 {pct(d['nvfp4'])} {('[' + '; '.join(d['nvfp4_fails'])[:60] + ']') if d['nvfp4_fails'] else ''} · EXL3 {pct(d['exl3'])} {('[' + '; '.join(d['exl3_fails'])[:60] + ']') if d['exl3_fails'] else ''}" for d in diff]
 else: md.append("\nNo auto-graded item scored differently between the lanes.")
+if all(ovon.values()) and all(ON[l]["n"] >= 40 for l in L):
+    md += ["", "### Thinking on, all 40 prompts", "", "| category | auto NVFP4 | auto EXL3 | TTFT NVFP4 | TTFT EXL3 | decode NVFP4 | decode EXL3 | tokens (med) |", "|---|---|---|---|---|---|---|---|"]
+    for c in CATS: md.append(f"| {c} | {pct(s(ON,'nvfp4',c,'auto_score'))} | {pct(s(ON,'exl3',c,'auto_score'))} | {fmt(s(ON,'nvfp4',c,'ttft_med_s'),2,' s')} | {fmt(s(ON,'exl3',c,'ttft_med_s'),2,' s')} | {fmt(s(ON,'nvfp4',c,'decode_med_tok_s'))} | {fmt(s(ON,'exl3',c,'decode_med_tok_s'))} | {s(ON,'nvfp4',c,'tokens_med')} / {s(ON,'exl3',c,'tokens_med')} |")
+    md.append(f"\nOverall with thinking on: auto score NVFP4 {pct(ovon['nvfp4']['auto_score'])} vs EXL3 {pct(ovon['exl3']['auto_score'])}; median TTFT {ovon['nvfp4']['ttft_med_s']} s vs {ovon['exl3']['ttft_med_s']} s; median decode {ovon['nvfp4']['decode_med_tok_s']} vs {ovon['exl3']['decode_med_tok_s']} tok/s.")
+if all(AG.values()):
+    md += ["", "### Agent loop: the whole conversation re-sent every turn", "", "Every turn re-sends the full history (system prompt, every earlier user turn, every earlier assistant reply) plus one new instruction; the assistant's real reply is appended for the next turn. Thinking off, 200-token replies. The long version carries a 30K-token document in the first turn, so every later turn re-sends it too.", "",
+           "| run | turns | final context (tok) | TTFT first turn | TTFT median | TTFT p90 | TTFT last turn | decode (med) | total |", "|---|---|---|---|---|---|---|---|---|"]
+    for t in ("short", "long"):
+        for l in L:
+            g = AG[(l, t)]; md.append(f"| {l.upper()} {t} | {g['turns']} | {g['ctx_last']:,} | {g['ttft_first_s']} s | {g['ttft_med_s']} s | {g['ttft_p90_s']} s | {g['ttft_last_s']} s | {g['decode_med_tok_s']} tok/s | {g['total_s']} s |")
+if DET:
+    md += ["", "### Determinism at temperature 0", "", "The same 40 prompts three times per lane, temperature 0, same state.", "", "| lane | outputs byte-identical across runs | auto score per run | items whose score changed | token-count spread, median / max |", "|---|---|---|---|---|"]
+    for l in L:
+        d = DET.get(l)
+        if d: md.append(f"| {l.upper()} | {d['identical_outputs']}/{d['n']} ({d['identical_pct']}%) | {' / '.join(pct(x) for x in d['auto_score_per_run'])} | {d['score_flips']} ({', '.join(d['score_flip_ids']) or 'none'}) | {d['token_spread_median']} / {d['token_spread_max']} |")
+if all(tpj(l) for l in L):
+    md += ["", "### Tokens per joule", "", "GPU power from nvidia-smi on both nodes of each lane (1 Hz for 60 s) during a c4 counting load; tokens per joule = lane throughput divided by the sum of the two nodes' average GPU power. GPU power only, not wall power.", "",
+           "| lane | throughput under load | node GPU power (W) | lane GPU power (W) | tokens per joule |", "|---|---|---|---|---|"]
+    for l in L: md.append(f"| {l.upper()} | {PWR[l]['tok_s']} tok/s | {PW[l][0]} + {PW[l][1]} | {round(sum(PW[l]),1)} | {tpj(l)} |")
 if all(PL.values()):
     md += ["", "### Prefill vs prompt length", "", "Cold = first request at that length, a new prompt: this is the real prefill compute. Repeat = the identical prompt sent again, which is a prefix-cache hit on both engines and measures the cache, not prefill.", "", "| prompt tokens | NVFP4 cold tok/s (s) | EXL3 cold tok/s (s) | NVFP4 repeat | EXL3 repeat |", "|---|---|---|---|---|"]
     for rn, re_ in zip(PL["nvfp4"]["rows"], PL["exl3"]["rows"]):

@@ -1,4 +1,29 @@
 {
+ "agent": {
+  "nvfp4_short": null,
+  "nvfp4_long": null,
+  "exl3_short": null,
+  "exl3_long": null
+ },
+ "determinism": {},
+ "power": {
+  "nvfp4": {
+   "nodes_w": [
+    null,
+    null
+   ],
+   "load": null,
+   "tok_per_joule": null
+  },
+  "exl3": {
+   "nodes_w": [
+    null,
+    null
+   ],
+   "load": null,
+   "tok_per_joule": null
+  }
+ },
  "rows": [
   {
    "category": "coding",

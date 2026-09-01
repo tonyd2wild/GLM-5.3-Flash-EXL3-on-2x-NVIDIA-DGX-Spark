@@ -66,3 +66,4 @@ Quality on 40 real prompts across 8 categories: 86% vs 85%, judge 9/8/13. Tie. E
 NVFP4 for fresh single-shot work. EXL3 for agents that re-send long context every turn. Updated tables, method and the mistake, in the article.
 
 Showdown card (our numbers, showdown layout, charcoal/white): results/showdown_nvfp4_vs_exl3.png
+Colorful 5:2 cover for the X Article: results/cover_5x2_color.png
