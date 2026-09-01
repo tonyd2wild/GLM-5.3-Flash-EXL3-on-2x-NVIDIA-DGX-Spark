@@ -85,11 +85,19 @@ NVFP4 GLM runs TP2 on **Reddie(.2 head)+Spark4(.4)**, master `192.168.192.2:2952
 `GLM-5.3-Flash-EXL3` on Bluey:8000. Different head nodes → the shared master port is fine.
 Endpoint for the fleet is unchanged (still Reddie:8000).
 
-## TODO after serve
-- [ ] smoke: red-probe vision (if applicable), thinking off, uncensored check
-- [ ] bench EXL3 vs NVFP4 → BENCH.md (median tok/s non-stream, single + c4 agg)
-- [ ] quality diff on hard prompts (code / reasoning / tool-call / long-ctx)
-- [ ] decide prod default (quality vs speed) with Tony
+## After serve — status (2026-09-01)
+- [x] thinking off honored (`chat_template_kwargs {"enable_thinking": false}` → `reasoning_content` empty)
+- [x] bench EXL3 vs NVFP4 → BENCH.md — isolated, parallel, c1×5 / c6×3 / prefill×3: **EXL3 wins every metric**
+      (61.1 / 122 / 3,233 vs 35.9 / 66 / 564), ±0.5% spread vs ±16%
+- [x] quality diff, probe 1 (top-k O(n log k) + bat-and-ball): **tie** — both correct, diff cosmetic
+- [ ] harder quality probes still open: multi-file refactor, tool-call arg validity, long-ctx recall (200K+)
+- [ ] vision red-probe / uncensored check (ABLIT not enabled on this lane)
+- [ ] prod default = Tony's call (data: EXL3 faster on every axis, quality tied on probe 1)
+
+**Bench isolation rule (learned the hard way):** Hermes supervisors `neo`, `oc-donnie`, `oc-draco` default
+to `glm-5.3-flash` → Reddie:8000. Before benching: move them to the 27B, park the spark-flash relay on
+`qwen27b`, pause the `:7900` latency monitor (real probe completions), then prove it from each head's
+access log by request COUNT (the supervisors share the bench client's IP).
 
 ## Publishing checklist (before flipping this repo public)
 Intent: this goes public eventually (deploy notes people can't find elsewhere). Keep it clean.
