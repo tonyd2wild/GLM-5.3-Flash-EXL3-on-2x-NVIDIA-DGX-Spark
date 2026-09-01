@@ -39,6 +39,25 @@ first boot always wipes) → `./start.sh start` (worker `--headless` over SSH, t
   fault, same failure class as the NVFP4 lane).
 - First boot after a cache wipe = long cold JIT. Slow, not dead.
 
+## Gotchas we hit + fixed (2026-09-01 first bring-up)
+1. **`count_shards()` counts 0 on a symlinked HF cache (upstream bug).** `start.sh`'s
+   `count_shards` uses `find "$repo/snapshots/$ref" -maxdepth 1 -type f -name '*.safetensors'`.
+   A standard HF hub cache stores snapshot files as **symlinks** into `../../blobs/`, and
+   `find -type f` does NOT match symlinks, so it returns 0 → the launch dies with
+   `ERROR: download finished with 0 / 120 shards` even though all 120 shards are present and
+   complete. **Fix: `find -L ...`** (follow symlinks; a symlink-to-regular-file then matches
+   `-type f`, which also validates the blob exists). One-word change on the `find` in
+   `count_shards`. Worth a PR back upstream — breaks on any normal HF cache.
+2. **The worker needs the FULL model on disk (~164 GiB), not half.** vLLM TP reads slices out
+   of every safetensors file, so `start.sh` rsyncs the whole cache to the worker. Asusi only had
+   ~122 GiB free (a dead 182 GiB NVFP4-ablit copy from the retired GLM TP4 lane was squatting in
+   `/var/tmp/models`). Cleared it → 303 GiB free. **Check worker free space >= model size before
+   launch;** the kit only WARNs, it doesn't stop.
+3. **`~/.cache/vllm-glm53-flash/.config-shape` can be root-owned** (a prior container wrote it as
+   root), so the config-shape stamp write fails with `Permission denied` and the JIT-cache guard
+   can't record state → it re-attempts a wipe every start. Harmless on first boot; `chown` it back
+   to the run user to stop the churn.
+
 ## Coexistence with the NVFP4 lane
 NVFP4 GLM runs TP2 on **Reddie(.2 head)+Spark4(.4)**, master `192.168.192.2:29521`, serves
 `glm-5.3-flash` on Reddie:8000. EXL3 runs TP2 on **Bluey(.1)+Asusi(.3)**, serves
