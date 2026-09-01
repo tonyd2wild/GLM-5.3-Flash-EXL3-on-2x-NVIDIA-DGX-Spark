@@ -6,31 +6,28 @@ from collections import Counter
 
 def top_k_frequent(nums, k):
     """
-    Returns the k most frequent elements in nums.
+    Return the k most frequent elements in nums.
     Time: O(n log k), Space: O(n)
     """
     if k <= 0 or not nums:
         return []
     
     counts = Counter(nums)  # O(n)
-    # Min-heap of size k: (frequency, element)
-    heap = []
     
-    for num, freq in counts.items():  # O(m) unique elements, m <= n
+    # Maintain a min-heap of size k
+    heap = []
+    for num, freq in counts.items():  # O(m) distinct elements, m <= n
         heapq.heappush(heap, (freq, num))
         if len(heap) > k:
             heapq.heappop(heap)  # evict least frequent
     
-    # Extract in descending frequency order
-    result = []
-    while heap:
-        result.append(heapq.heappop(heap)[1])
-    return result[::-1]
+    # Extract results (order: most frequent first)
+    return [num for freq, num in sorted(heap, reverse=True)]
 ```
 
-**Why O(n log k):** Counting frequencies is O(n), and we then process m unique elements (m ≤ n), performing heap operations on a heap that never exceeds size k — each push/pop costs O(log k), giving O(n log k) total. The final extraction of k elements adds O(k log k), which is bounded by O(n log k) since k ≤ n. This beats the naive approach of sorting all frequencies, which would be O(n log n).
+**Why O(n log k):** Counting frequencies is O(n), and there are at most m ≤ n distinct elements. Each of the m heap operations (push + conditional pop) costs O(log k) because the heap never exceeds size k, giving O(n log k) total. The final sort of k elements is O(k log k), which is dominated by O(n log k) since k ≤ n.
 
-**Edge case handled:** If `k` is larger than the number of unique elements, the heap simply holds all unique elements and returns them all — no error is raised. (Also handles empty input or `k ≤ 0` by returning `[]`.)
+**Edge case handled:** If `k` is larger than the number of distinct elements, the heap simply holds all distinct elements and returns them all — no error is raised. (Also handles empty input or `k ≤ 0` by returning `[]`.)
 
 ---
 
@@ -40,16 +37,18 @@ def top_k_frequent(nums, k):
 
 Let `b` = the cost of the ball.
 
-- Bat + ball = $1.10
-- Bat = ball + $1.00
+- Bat + ball = $1.10 → `b + (b + 1.00) = 1.10`
+- Bat costs $1.00 more than the ball → bat = `b + 1.00`
 
-Substituting:
+**Solving:**
 
-$$b + (b + 1.00) = 1.10$$
-$$2b + 1.00 = 1.10$$
-$$2b = 0.10$$
-$$b = 0.05$$
+```
+b + (b + 1.00) = 1.10
+2b + 1.00 = 1.10
+2b = 0.10
+b = 0.05
+```
 
-**Check:** Ball = $0.05, Bat = $1.05, and $1.05 + $0.05 = $1.10 ✓ (and the bat is exactly $1.00 more than the ball ✓)
+**Check:** Ball = $0.05, Bat = $1.05, Total = $1.10 ✓ (and the bat is exactly $1.00 more than the ball ✓)
 
 ANSWER: $0.05

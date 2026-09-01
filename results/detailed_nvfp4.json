@@ -1,0 +1,1 @@
+{"label": "nvfp4", "model": "glm-5.3-flash", "c1_med": 64.0, "c1_min": 62.8, "c1_max": 64.7, "c6_agg_med": 135.6, "c6_agg_min": 134.0, "c6_agg_max": 144.3, "c6_per_med": 34.5, "prefill_med": 1197, "ttft_med": 1.36}

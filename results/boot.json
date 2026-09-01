@@ -8,8 +8,8 @@
  },
  "nvfp4": {
   "launch": "2026-09-01 17:07 ET",
-  "serve": null,
-  "min": null,
+  "serve": "2026-09-01 17:30 ET",
+  "min": 23,
   "weight_load_s": 322,
   "note": "worker loads over NFS from head (Reddie page cache warm), TileLang cache partly warm"
  },

@@ -1,9 +1,3 @@
-# Bench — EXL3 vs NVFP4 (GLM-5.3-Flash, same 4-Spark cluster)
-
-Canonical results live in `results/` (sweep JSON per lane, detailed JSON, quality answers, boot.json) and are
-rendered by `tools/make_article.py` into `REPORT.md`, `results/summary.md` and `docs/article.html`.
-Method: 2Wild house rule — throughput = median tok/s, non-stream; isolate the lane, warm it, verify clocks under load.
-
 ## Headline (isolated, both lanes benched simultaneously, 2026-09-01 17:34:23)
 | | NVFP4 (Reddie + Spark4) | EXL3 (Bluey + Asusi) | EXL3 ÷ NVFP4 |
 |---|---|---|---|
@@ -29,4 +23,3 @@ Method: 2Wild house rule — throughput = median tok/s, non-stream; isolate the 
 | 4 | 111.2 | 48.5 | 6.61 s | 3.05 s | **149.7** | **37.4** | **8.55 s** | **0.88 s** |
 | 5 | 131.3 | 47.0 | 6.81 s | 3.11 s | **116.9** | **36.2** | **8.85 s** | **1.06 s** |
 | 6 | 136.3 | 35.0 | 10.09 s | 4.6 s | **125.2** | **35.8** | **8.95 s** | **1.02 s** |
-

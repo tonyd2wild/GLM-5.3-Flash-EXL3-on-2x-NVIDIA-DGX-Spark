@@ -18,6 +18,45 @@ qe, qn = q("exl3"), q("nvfp4")
 BOOT = json.load(open("results/boot.json")) if os.path.exists("results/boot.json") else {}
 def boot(l):
     b = BOOT.get(l, {}); return (f"{b['min']} min ({b['note']})" if b.get("min") else "—")
+def bat(l, m):
+    p = f"results/quality_battery_{l}_{m}.json"; return json.load(open(p)) if os.path.exists(p) else None
+B = {(l, m): bat(l, m) for l in ("exl3", "nvfp4") for m in ("off", "on")}
+def acc(l, m):
+    b = B[(l, m)]; return f"{b['correct']}/{b['n']} ({b['accuracy']*100:.0f}%)" if b else "—"
+def cat_rows(html=True):
+    cats = next((list(b["by_category"].keys()) for b in B.values() if b), [])
+    def cell(l, m, c): b = B[(l, m)]; return f"{b['by_category'][c][0]}/{b['by_category'][c][1]}" if b else "—"
+    if html: return "".join(f"<tr><td>{c}</td>" + "".join(f"<td>{cell(l, m, c)}</td>" for m in ("off", "on") for l in ("nvfp4", "exl3")) + "</tr>" for c in cats)
+    return "\n".join(f"| {c} | " + " | ".join(cell(l, m, c) for m in ("off", "on") for l in ("nvfp4", "exl3")) + " |" for c in cats)
+def disagree(m, html=True):
+    a, b = B[("nvfp4", m)], B[("exl3", m)]
+    if not (a and b): return "<li>—</li>" if html else "- —"
+    out = []
+    for x, y in zip(a["items"], b["items"]):
+        if x["correct"] != y["correct"]:
+            t = f"{x['id']} ({x['category']}): NVFP4 {'right' if x['correct'] else 'wrong'} [{x['got'][:40]}] · EXL3 {'right' if y['correct'] else 'wrong'} [{y['got'][:40]}] · expected [{x['expected'][:30]}]"
+            out.append(f"<li>{t}</li>" if html else f"- {t}")
+    return ("".join(out) if html else "\n".join(out)) or ("<li>none — identical pass/fail on every item</li>" if html else "- none — identical pass/fail on every item")
+def reason_chars(l): b = B[(l, "on")]; return (round(sum(i["reasoning_chars"] for i in b["items"]) / b["n"]) if b else "—")
+
+def reason_side(iid, html=True):
+    """Both lanes' reasoning traces for one item, thinking on."""
+    a, b = B[("nvfp4", "on")], B[("exl3", "on")]
+    if not (a and b): return ""
+    x = next((i for i in a["items"] if i["id"] == iid), None); y = next((i for i in b["items"] if i["id"] == iid), None)
+    if not (x and y and x.get("reasoning_excerpt") and y.get("reasoning_excerpt")): return ""
+    def clip(t): t = t.strip().replace("\n\n", "\n"); return (t[:420] + " …") if len(t) > 420 else t
+    if html:
+        esc = lambda t: t.replace("&", "&amp;").replace("<", "&lt;")
+        return (f"<div class=\"rs\"><div><div class=\"rsh\">NVFP4 · {x['reasoning_chars']:,} chars of reasoning · {x['completion_tokens']} tokens · {'right' if x['correct'] else 'wrong'}</div><pre>{esc(clip(x['reasoning_excerpt']))}</pre></div>"
+                f"<div><div class=\"rsh\">EXL3 · {y['reasoning_chars']:,} chars of reasoning · {y['completion_tokens']} tokens · {'right' if y['correct'] else 'wrong'}</div><pre>{esc(clip(y['reasoning_excerpt']))}</pre></div></div>")
+    return (f"NVFP4 ({x['reasoning_chars']:,} chars, {'right' if x['correct'] else 'wrong'}):\n> " + clip(x['reasoning_excerpt']).replace("\n", "\n> ") +
+            f"\n\nEXL3 ({y['reasoning_chars']:,} chars, {'right' if y['correct'] else 'wrong'}):\n> " + clip(y['reasoning_excerpt']).replace("\n", "\n> "))
+ITEM_TITLES = {"logic3": "the clock-hands angle at 3:15", "fmt2": "reverse the word 'benchmark' (the item both missed with thinking off)", "code1": "predict the Python output"}
+TRACES_HTML = "".join(f"<p class='rst'>{t}</p>{reason_side(i)}" for i, t in ITEM_TITLES.items() if reason_side(i))
+TRACES_MD = "\n".join(f"**{t}**\n{reason_side(i, html=False)}\n" for i, t in ITEM_TITLES.items() if reason_side(i, html=False))
+ISO = json.load(open("results/isolation.json")) if os.path.exists("results/isolation.json") else {}
+iso_txt = (f" This run: NVFP4 head {ISO['nvfp4_head'].get('100.91.157.18','?')} chat POSTs, all from the bench client; EXL3 head {ISO['exl3_head'].get('100.91.157.18','?')} from the bench client, and the only other traffic in the 30-minute log window was the kit's own post-serve warm-up burst of {ISO['exl3_head'].get('127.0.0.1',0)} requests at 17:16 ET, fifteen minutes before the tests began." if ISO else "")
 e1, n1, e6, n6 = er[0], nr[0], er[-1], nr[-1]
 # warm prefill/TTFT from the dedicated measurement (median of the last 3 of N long prompts) overrides the sweep's
 # single c1 sample, which is the FIRST long prefill after boot and therefore cold-JIT on a fresh lane.
@@ -108,6 +147,7 @@ footer{{margin-top:56px;padding-top:20px;border-top:1px solid var(--rule);font-s
 a{{color:var(--ink);text-decoration-color:var(--rule);text-underline-offset:3px}} a:focus-visible{{outline:2px solid var(--ink);outline-offset:2px}}
 @media (max-width:640px){{.stats{{grid-template-columns:1fr}} .wrap{{padding:28px 16px 48px}}}}
 @media (prefers-reduced-motion:reduce){{*{{animation:none!important;transition:none!important}}}}
+.rs{{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:8px 0 18px}}.rs pre{{white-space:pre-wrap;font-size:12.5px;line-height:1.45;margin:0;padding:10px 12px;border:1px solid var(--rule);border-radius:6px;background:var(--panel);overflow-x:auto}}.rsh{{font-size:12px;color:var(--mut);margin:0 0 6px;letter-spacing:.02em}}.rst{{font-weight:600;margin:14px 0 4px}}@media(max-width:700px){{.rs{{grid-template-columns:1fr}}}}
 </style>
 <div class="wrap">
 <div class="eyebrow">2Wild fleet report · {ts[:10]}</div>
@@ -149,7 +189,7 @@ a{{color:var(--ink);text-decoration-color:var(--rule);text-underline-offset:3px}
 <p>Both lanes: fp8 KV cache, thinking disabled, the multimodal chat template, native <code>image_url</code> input (a 64×64 red square came back "Red" on both).</p>
 
 <h2>Method</h2>
-<p><b>Isolation.</b> Before measuring, every other consumer was moved off both lanes: the spark-flash relay our external agents use was parked on the 3090's Qwen 27B, the latency dashboard (which sends real probe completions) was paused, and the three Hermes supervisors whose default model is <code>glm-5.3-flash</code> were moved to the 27B. After each run we pulled each head's access log: every chat POST in the window came from the bench client, and the counts matched the requests issued. The supervisors run on the same Mac as the bench client, so the IP alone proves nothing; the request counts do.</p>
+<p><b>Isolation.</b> Before measuring, every other consumer was moved off both lanes: the spark-flash relay our external agents use was parked on the 3090's Qwen 27B, the latency dashboard (which sends real probe completions) was paused, and the three Hermes supervisors whose default model is <code>glm-5.3-flash</code> were moved to the 27B. After each run we pulled each head's access log: every chat POST in the window came from the bench client, and the counts matched the requests issued. The supervisors run on the same Mac as the bench client, so the IP alone proves nothing; the request counts do.{iso_txt}</p>
 <p><b>Simultaneity and state.</b> The two lanes were benched in parallel, minutes after all four nodes were restarted together and their clocks verified under load. They share no GPUs, no memory, and no NCCL group.</p>
 <p><b>Warm-up.</b> Both engines JIT-compile kernels lazily per request shape. Every lane got 2× c1 + 1× c6 warm-up requests before measurement. Never bench a cold lane: EXL3's first-ever completion on a fresh boot was ~30 tok/s and its first long prefill 136 tok/s; NVFP4's first request took 5.2 s, its third 3.3 s.</p>
 <p><b>Metrics.</b> Throughput is median tokens per second, non-streaming. c1–c6: 3 rounds of c concurrent ~300-token generations; aggregate = Σ tokens / round wall; per-stream = each request's tokens / its own wall; wall-to-wall = each request's end-to-end latency (median). TTFT at level c: c concurrent ~1.5K-token prompts with an 8-token answer, median wall. Prefill = prompt tokens / that wall at c1. A separate detailed run repeats c1 five times for the spread. All requests <code>temperature 0</code>, <code>stream false</code>, thinking off, identical prompts to both lanes. Tools: <code>tools/bench_sweep.py</code>, <code>tools/bench_detailed.py</code>, <code>tools/quality_probe.py</code>, <code>tools/run_full_test.sh</code>.</p>
@@ -161,12 +201,20 @@ a{{color:var(--ink);text-decoration-color:var(--rule);text-underline-offset:3px}
 <figure><img src="{b64('results/chart_w2w.png')}" alt="Wall-to-wall latency for a 300-token answer versus concurrency for both lanes."><figcaption>Wall-to-wall for a 300-token answer, median. At c6: EXL3 {e6['w2w_med_s']} s, NVFP4 {n6['w2w_med_s']} s.</figcaption></figure>
 <p><b>Reading the curve.</b> EXL3 scales to {pe} tok/s at c{pe_c} and then flattens — that is the kit's <code>--max-num-seqs 4</code>, a configuration cap rather than the quantization, and raising it is the obvious next experiment. NVFP4 (<code>--max-num-seqs 6</code>) admits all six but pays per stream: {n1['per_stream_tok_s']} → {n6['per_stream_tok_s']} tok/s, TTFT {n1['ttft_med_s']} → {n6['ttft_med_s']} s.</p>
 
-<h2>Quality</h2>
-<p>Same prompt to both, thinking off, temperature 0: write <code>top_k_frequent(nums, k)</code> in O(n log k) with an explanation and an edge case, and solve the bat-and-ball trap ($1.10 total, the bat $1.00 more than the ball). EXL3: {qe}. NVFP4: {qn}. Published KLD figures put EXL3/TR3 4bpw near 0.025 (tying FP8) and NVFP4 near 0.060, so a quality gap is expected to exist; a single probe of this difficulty {'did not surface it' if qe == qn else 'surfaced a difference'}. Harder probes are the open items.</p>
+<h2>Quality: does the quant change how smart it is?</h2>
+<p><b>Probe.</b> Same prompt to both, thinking off, temp 0: <code>top_k_frequent</code> in O(n log k) with an explanation and an edge case, plus the bat-and-ball trap. EXL3 {qe}, NVFP4 {qn}.</p>
+<p><b>Battery.</b> Twelve auto-graded items with checkable final answers: three multi-step math word problems, three logic puzzles, two code items (predict the output; fix the one-line bug), a leap-year rule application, the bat-and-ball trap, and two strict-format tasks (exact JSON, reversed string). Identical for both lanes, temperature 0, run twice: thinking <b>off</b> (direct answer) and thinking <b>on</b> (the model reasons first, up to 2,500 tokens). <code>tools/quality_battery.py</code>; every item, answer and excerpt is in <code>results/quality_battery_*.json</code>.</p>
+<div class="tw"><table><thead><tr><th>accuracy</th><th>NVFP4 · thinking off</th><th>EXL3 · thinking off</th><th>NVFP4 · thinking on</th><th>EXL3 · thinking on</th></tr></thead><tbody>
+<tr><td><b>all 12 items</b></td><td>{acc('nvfp4','off')}</td><td>{acc('exl3','off')}</td><td>{acc('nvfp4','on')}</td><td>{acc('exl3','on')}</td></tr>
+{cat_rows()}
+<tr><td>avg reasoning trace, thinking on (chars)</td><td></td><td></td><td>{reason_chars('nvfp4')}</td><td>{reason_chars('exl3')}</td></tr>
+</tbody></table></div>
+<p><b>Where they disagreed, thinking off:</b></p><ul>{disagree('off')}</ul>
+<p><b>Where they disagreed, thinking on:</b></p><ul>{disagree('on')}</ul>
+<p><b>The traces themselves.</b> Same item, both lanes, thinking on, temperature 0. This is what "reasoning" looks like from each quant; the full traces for all twelve items are in the JSON.</p>
+{TRACES_HTML}
+<p>Published KLD-vs-FP16 figures put EXL3/TR3 4bpw near 0.025 (tying FP8) and NVFP4 near 0.060, so a gap is expected to exist in the output distribution; whether it shows up on a task battery this size is what the table says. Twelve items is a probe of intelligence, not a benchmark suite: treat a single-item difference as noise unless it repeats.</p>
 
-<h2>Discussion</h2>
-<p><b>Where the numbers land.</b> Single-stream decode: {c1_txt}. Peak aggregate: {pk_txt}; per-stream at c6: {c6ps_txt}. Warm prefill: {pf_txt}, TTFT {tt_txt}. Both engines JIT-compile the long-prompt path on first use, so the sweep's own c1 prefill sample is a cold number on a fresh boot; the figures above come from the dedicated warm measurement.</p>
-<p><b>Context and KV.</b> EXL3 serves {CTX['exl3']:,} tokens of context with a {KV['exl3']:,}-token KV pool on the same two boxes on which the NVFP4 recipe serves {CTX['nvfp4']:,} with a {KV['nvfp4']:,}-token pool. NVFP4 at TP2 cannot be launched at 1M: an adapted launcher with <code>--max-model-len 1048576</code> produced three worker reboots on <code>NVRM: NV_ERR_NO_MEMORY</code> and a 24-minute stall until the published 256K recipe was run verbatim.</p>
 <p><b>Boot and load time.</b> Measured on this same-state run from launch command to first <code>/health</code> 200: EXL3 {boot('exl3')}; NVFP4 {boot('nvfp4')}. NVFP4's worker reads its weights over NFS from the head on this cluster (no local copy of the base on Spark4); a local copy would put it closer to the recipe's ~15 min. Both lanes JIT-compile kernels on first boot; a wiped cache adds minutes to either.</p>
 <p><b>Memory.</b> Each lane holds ~91 GiB of weights per 121 GiB node; every failure we hit was a transient spike on top of that baseline. Drop caches on every node before every launch; <code>free -g</code> under-reports on GB10.</p>
 
@@ -262,7 +310,7 @@ native `image_url` (a red square came back "Red" on both).
 **Isolation.** Relay parked on the 3090 27B, latency dashboard paused (it sends real probe completions), the three
 Hermes supervisors that default to `glm-5.3-flash` moved to the 27B; after each run the head's access log shows chat
 POSTs from the bench client only, with counts matching the requests issued (the supervisors share the client's IP,
-so only counts prove it). **Simultaneity.** Both lanes benched in parallel; no shared GPUs, memory or NCCL group.
+so only counts prove it).{iso_txt} **Simultaneity.** Both lanes benched in parallel; no shared GPUs, memory or NCCL group.
 **Warm-up.** 2× c1 + 1× c6 before measuring; both engines JIT-compile per request shape — never bench a cold lane.
 **Metrics.** Median tokens/s, non-streaming. c1–c6: 3 rounds of c concurrent ~300-token generations; aggregate =
 Σ tokens / round wall; per-stream = each request's tokens / its wall; wall-to-wall = end-to-end latency (median).
@@ -274,10 +322,24 @@ EXL3 scales to {pe} tok/s at c{pe_c} and flattens — the kit's `--max-num-seqs 
 NVFP4 (`--max-num-seqs 6`) admits all six but pays per stream: {n1['per_stream_tok_s']} → {n6['per_stream_tok_s']} tok/s,
 TTFT {n1['ttft_med_s']} → {n6['ttft_med_s']} s, wall-to-wall {n1['w2w_med_s']} → {n6['w2w_med_s']} s.
 
-## Quality
-Same prompt to both, thinking off, temp 0: `top_k_frequent` in O(n log k) + the bat-and-ball trap. EXL3 {qe}, NVFP4 {qn}.
-Published KLD: EXL3/TR3 4bpw ~0.025 (ties FP8), NVFP4 ~0.060; one probe of this difficulty
-{'did not surface a gap' if qe == qn else 'surfaced a difference'}. Harder probes are open items.
+## Quality: does the quant change how smart it is?
+**Probe** (top-k in O(n log k) + bat-and-ball, thinking off): EXL3 {qe}, NVFP4 {qn}.
+**Battery**: 12 auto-graded items (3 math word problems, 3 logic, 2 code, leap-year rule, bat-and-ball, 2 strict-format),
+identical for both lanes, temp 0, thinking off and thinking on (`tools/quality_battery.py`, full items + answers in `results/quality_battery_*.json`):
+
+| accuracy | NVFP4 · off | EXL3 · off | NVFP4 · on | EXL3 · on |
+|---|---|---|---|---|
+| **all 12** | {acc('nvfp4','off')} | {acc('exl3','off')} | {acc('nvfp4','on')} | {acc('exl3','on')} |
+{cat_rows(html=False)}
+| avg reasoning trace, on (chars) | | | {reason_chars('nvfp4')} | {reason_chars('exl3')} |
+
+Disagreements, thinking off:
+{disagree('off', html=False)}
+Disagreements, thinking on:
+{disagree('on', html=False)}
+Traces, thinking on (same item, both lanes):
+{TRACES_MD}
+Published KLD: EXL3/TR3 4bpw ~0.025 (ties FP8), NVFP4 ~0.060. Twelve items is a probe, not a suite.
 
 ## Boot and load time
 Launch command → first `/health` 200, this run: EXL3 {boot('exl3')}; NVFP4 {boot('nvfp4')}. NVFP4's worker reads its

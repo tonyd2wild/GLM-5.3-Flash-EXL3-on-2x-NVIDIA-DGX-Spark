@@ -1,0 +1,193 @@
+{
+ "lane": "nvfp4",
+ "model": "glm-5.3-flash",
+ "thinking": "off",
+ "n": 12,
+ "correct": 11,
+ "accuracy": 0.917,
+ "by_category": {
+  "math": [
+   3,
+   3
+  ],
+  "logic": [
+   3,
+   3
+  ],
+  "code": [
+   2,
+   2
+  ],
+  "knowledge": [
+   1,
+   1
+  ],
+  "reasoning": [
+   1,
+   1
+  ],
+  "format": [
+   1,
+   2
+  ]
+ },
+ "items": [
+  {
+   "id": "math1",
+   "category": "math",
+   "expected": "82",
+   "got": "82",
+   "correct": true,
+   "no_answer_line": false,
+   "finish": "stop",
+   "completion_tokens": 128,
+   "wall_s": 2.8,
+   "reasoning_chars": 0,
+   "answer_excerpt": "s \u00d7 8 cookies = 72 cookies\n\nMaya gives away one third of the muffins: 42 \u00f7 3 = 14 muffins given away\nMuffins remaining: 42 \u2212 14 = 28 muffins\n\nMaya gives away one quarter of the cookies: 72 \u00f7 4 = 18 cookies given away\nCookies remaining: 72 \u2212 18 = 54 cookies\n\nTotal items left: 28 + 54 = 82\n\nANSWER: 82"
+  },
+  {
+   "id": "math2",
+   "category": "math",
+   "expected": "30",
+   "got": "30",
+   "correct": true,
+   "no_answer_line": false,
+   "finish": "stop",
+   "completion_tokens": 145,
+   "wall_s": 4.1,
+   "reasoning_chars": 0,
+   "answer_excerpt": "reach capacity:\n$$250 - 40 = 210 \\text{ liters}$$\n\nTime required:\n$$\\frac{210}{7} = 30 \\text{ minutes}$$\n\n## Verification\n\nAfter 30 minutes: 40 + 7(30) = 40 + 210 = 250 liters \u2713\n\nThe tank exactly reaches capacity at 30 minutes, so it first reaches or exceeds capacity at 30 whole minutes.\n\nANSWER: 30"
+  },
+  {
+   "id": "math3",
+   "category": "math",
+   "expected": "17",
+   "got": "17",
+   "correct": true,
+   "no_answer_line": false,
+   "finish": "stop",
+   "completion_tokens": 57,
+   "wall_s": 1.6,
+   "reasoning_chars": 0,
+   "answer_excerpt": "The mean of three numbers is 20, so their sum is 3 \u00d7 20 = 60.\n\nThe smallest is 8 and the largest is 35, so the middle number is:\n\n60 \u2212 8 \u2212 35 = 17\n\nANSWER: 17"
+  },
+  {
+   "id": "logic1",
+   "category": "logic",
+   "expected": "Ben",
+   "got": "Ben",
+   "correct": true,
+   "no_answer_line": false,
+   "finish": "stop",
+   "completion_tokens": 69,
+   "wall_s": 2.3,
+   "reasoning_chars": 0,
+   "answer_excerpt": "Alice is allergic to fur, so she cannot have the cat or the dog \u2014 she must have the fish.\n\nBen does not have the cat. Since Alice has the fish, the cat and dog remain for Ben and Cara. Ben doesn't have the cat, so Ben has the dog, and Cara has the cat.\n\nANSWER: Ben"
+  },
+  {
+   "id": "logic2",
+   "category": "logic",
+   "expected": "no",
+   "got": "No",
+   "correct": true,
+   "no_answer_line": false,
+   "finish": "stop",
+   "completion_tokens": 77,
+   "wall_s": 2.3,
+   "reasoning_chars": 0,
+   "answer_excerpt": "**No.**\n\nHere's the reasoning:\n1. All Bloops are Razzies (given).\n2. No Razzie is a Lazzie (given).\n3. Since every Bloop is a Razzie, and no Razzie can be a Lazzie, it follows that no Bloop can be a Lazzie.\n\nANSWER: No"
+  },
+  {
+   "id": "logic3",
+   "category": "logic",
+   "expected": "7.5",
+   "got": "7.5\u00b0",
+   "correct": true,
+   "no_answer_line": false,
+   "finish": "stop",
+   "completion_tokens": 131,
+   "wall_s": 3.9,
+   "reasoning_chars": 0,
+   "answer_excerpt": "nute hand points at the 3 (which is 90\u00b0 from 12).\n\nThe hour hand moves 30\u00b0 per hour, so at 3:15 it has moved 15/60 = 1/4 of an hour past 3, which is 30\u00b0 \u00d7 0.25 = 7.5\u00b0 past the 3.\n\nSo the hour hand is at 97.5\u00b0 and the minute hand is at 90\u00b0.\n\nThe angle between them is 97.5\u00b0 \u2212 90\u00b0 = 7.5\u00b0.\n\nANSWER: 7.5\u00b0"
+  },
+  {
+   "id": "code1",
+   "category": "code",
+   "expected": "9",
+   "got": "9",
+   "correct": true,
+   "no_answer_line": false,
+   "finish": "stop",
+   "completion_tokens": 210,
+   "wall_s": 4.4,
+   "reasoning_chars": 0,
+   "answer_excerpt": "slices from index 1 up to (but not including) the last element:\n- `y = [2, 3, 4]`\n\n**Step 3:** `y.append(x[0] * x[-1])` \u2014 `x[0]` is 1, `x[-1]` is 5, so we append `1 * 5 = 5`:\n- `y = [2, 3, 4, 5]`\n\n**Step 4:** `sum(y) - len(x)`:\n- `sum(y) = 2 + 3 + 4 + 5 = 14`\n- `len(x) = 5`\n- `14 - 5 = 9`\n\nANSWER: 9"
+  },
+  {
+   "id": "code2",
+   "category": "code",
+   "expected": "return s[-2]",
+   "got": "return s[-2]",
+   "correct": true,
+   "no_answer_line": false,
+   "finish": "stop",
+   "completion_tokens": 42,
+   "wall_s": 1.4,
+   "reasoning_chars": 0,
+   "answer_excerpt": "The bug is in the return statement: `s[-1]` returns the largest value, not the second-largest. It should be `s[-2]`.\n\nANSWER: return s[-2]"
+  },
+  {
+   "id": "know1",
+   "category": "knowledge",
+   "expected": "2000",
+   "got": "2000",
+   "correct": true,
+   "no_answer_line": false,
+   "finish": "stop",
+   "completion_tokens": 179,
+   "wall_s": 3.8,
+   "reasoning_chars": 0,
+   "answer_excerpt": "*: Divisible by 4, and it's a century year. 2000 \u00f7 400 = 5, so divisible by 400. **Leap year.**\n- **2100**: Divisible by 4, but it's a century year. 2100 \u00f7 400 = 5.25, so not divisible by 400. **Not a leap year.**\n- **2023**: Not divisible by 4 (2023 \u00f7 4 = 505.75). **Not a leap year.**\n\nANSWER: 2000"
+  },
+  {
+   "id": "know2",
+   "category": "reasoning",
+   "expected": "0.05",
+   "got": "$0.05",
+   "correct": true,
+   "no_answer_line": false,
+   "finish": "stop",
+   "completion_tokens": 135,
+   "wall_s": 4.0,
+   "reasoning_chars": 0,
+   "answer_excerpt": " of $0.10 is wrong. Let me verify: if the ball cost $0.10, the bat would cost $1.10, making the total $1.20 \u2014 too much.\n\nLet the ball cost $x$. Then the bat costs $x + 1.00$, and:\n\n$$x + (x + 1.00) = 1.10$$\n$$2x = 0.10$$\n$$x = 0.05$$\n\nCheck: ball = $0.05, bat = $1.05, total = $1.10. \u2713\n\nANSWER: $0.05"
+  },
+  {
+   "id": "fmt1",
+   "category": "format",
+   "expected": "{\"city\":\"Tokyo\",\"population\":13960000}",
+   "got": "{\"city\": \"Tokyo\", \"population\": 13960000}",
+   "correct": true,
+   "no_answer_line": true,
+   "finish": "stop",
+   "completion_tokens": 16,
+   "wall_s": 0.7,
+   "reasoning_chars": 0,
+   "answer_excerpt": "{\"city\": \"Tokyo\", \"population\": 13960000}"
+  },
+  {
+   "id": "fmt2",
+   "category": "format",
+   "expected": "kramhcneb",
+   "got": "kramnehceb",
+   "correct": false,
+   "no_answer_line": false,
+   "finish": "stop",
+   "completion_tokens": 47,
+   "wall_s": 1.9,
+   "reasoning_chars": 0,
+   "answer_excerpt": "The word \"benchmark\" spelled backwards is \"kramnehceb\".\n\nLet me verify: b-e-n-c-h-m-a-r-k reversed is k-r-a-m-h-c-n-e-b.\n\nANSWER: kramnehceb"
+  }
+ ],
+ "ts": "2026-09-01 17:45"
+}

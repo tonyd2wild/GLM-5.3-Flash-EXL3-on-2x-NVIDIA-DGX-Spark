@@ -1,0 +1,11 @@
+{
+ "window": "throughput tests 17:31-17:37 ET; docker logs --since 30m on both heads at 17:38 ET",
+ "nvfp4_head": {
+  "100.91.157.18": 128
+ },
+ "exl3_head": {
+  "100.91.157.18": 129,
+  "127.0.0.1": 15
+ },
+ "note": "bench client issued ~127 per lane. The 15 localhost POSTs on the EXL3 head were all stamped 21:16:10-21:16:28 UTC (17:16 ET): the kit's own post-serve warm-up burst, 15 minutes before the tests began. Zero non-bench requests on either lane during the test window."
+}

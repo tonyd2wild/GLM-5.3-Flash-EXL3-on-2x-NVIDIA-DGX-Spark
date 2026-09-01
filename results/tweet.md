@@ -1,36 +1,32 @@
-# Tweet copy — NVFP4 vs EXL3 (draft for Tony; no em dashes, no hashtags)
+# Tweet copy (final, same-state run 2026-09-01)
 
-## Main post (attach: poster_nvfp4_vs_exl3.png)
+Attach: results/poster_nvfp4_vs_exl3.png (lead image), results/chart_agg.png, results/chart_ttft.png, results/chart_w2w.png.
+Link goes through Hootsuite (Post Bridge strips links on X). Article: https://claude.ai/code/artifact/bdcc64b1-44f0-49e7-b3dc-f189d5674f7a
 
-Same model. Same hardware. Two 4-bit quants.
+## Main post
 
-GLM-5.3-Flash, NVFP4 vs EXL3, each on its own pair of DGX Sparks, benched at the same time, isolated, c1 to c6.
+NVFP4 vs EXL3. Same model, same boxes, same minute.
 
-EXL3 won every line:
-- 1.7x single-stream decode (61 vs 38 tok/s)
-- 5.7x prefill (3,217 vs 565 tok/s)
-- TTFT 0.5s vs 2.9s
-- 4.7x the KV pool, 1M context vs 256K
-- quality tie
+GLM-5.3-Flash on 2× DGX Spark per lane, TP2 each, both lanes benched simultaneously at c1 to c6, nothing else touching either.
 
-Full write-up, methodology, and the whole c1-c6 curve below.
+NVFP4 wins decode: 64.0 vs 61.5 tok/s single stream, +14 to 30% per stream at c2 to c5, faster wall-to-wall through c5.
 
-## Reply 1 (attach: chart_agg.png)
+EXL3 wins the first token: 1.0 s vs 4.6 s TTFT at c6, prefill 2.9× (3,099 vs 1,055 tok/s), 1M context and 4.7× the KV pool on the same two boxes, boots in 13 min vs 23.
 
-Aggregate throughput vs concurrency. EXL3 climbs to 150 tok/s at c4 and flattens only because that kit ships with max-num-seqs 4 (a config cap, not the quant). NVFP4 peaks at 95 at c3.
+Quality battery, 12 items, thinking off and on: 11/12 vs 11/12, then 12/12 vs 12/12. Same miss, same fix. The quant did not change how smart it is.
 
-## Reply 2 (attach: chart_ttft.png)
+Our first pass said EXL3 won everything. Two of the four Sparks were clock-capped at ~700 MHz after a reboot. We caught it, restarted, and ran the whole thing again. Numbers here are the second run.
 
-Time to first token is where agents feel it. EXL3 holds 0.5 to 1.0s across c1-c6. NVFP4 climbs from 2.9s to 9.8s.
+Full method, isolation proof, every number and the reasoning traces side by side: [link]
 
-## Reply 3 (attach: chart_w2w.png)
+## Short version
 
-Wall-to-wall for a 300-token answer at c6: EXL3 8.9s, NVFP4 16.9s. Same two boxes each.
+Two 4-bit quants of GLM-5.3-Flash, two 2-node DGX Spark lanes, benched at the same time.
+NVFP4: +4% decode, +14 to 30% per stream under load.
+EXL3: first token 4.5× sooner at c6, 2.9× prefill, 1M context, 4.7× KV pool.
+Quality: tie, 11/12 and 12/12 on both.
+Details: [link]
 
-## Reply 4 (no image)
+## Reply (thread)
 
-Method matters. Relay parked, latency monitor paused, supervisors moved off, then each head's access log checked so only the bench touched the lane. NVFP4 swept twice, agents off the second time: within 3% both times.
-
-Article + repos: [ARTICLE LINK] · github.com/tonyd2wild/glm53-flash-exl3-2x-dgx-spark · github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-DFlash2-2x-DGX-Spark
-
-Credits: Reederey87, MiaAI-Lab, brandonmusic, turboderp, IncoAI, RedHatAI, zai-org.
+Both recipes are public: the NVFP4 2-Spark launcher (github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-DFlash2-2x-DGX-Spark) and the EXL3 kit from Reederey87 with brandonmusic's tr3-4bpw weights and turboderp's exllamav3 built for sm_121a. Credits in the article.

@@ -1,0 +1,18 @@
+{
+ "lane": "nvfp4",
+ "model": "glm-5.3-flash",
+ "n": 6,
+ "prompt_tokens": 1623,
+ "first_prefill_tok_s": 1214,
+ "first_ttft_s": 1.34,
+ "warm_prefill_tok_s": 1055,
+ "warm_ttft_s": 1.54,
+ "all_tok_s": [
+  1214,
+  1178,
+  1173,
+  1275,
+  1055,
+  1030
+ ]
+}

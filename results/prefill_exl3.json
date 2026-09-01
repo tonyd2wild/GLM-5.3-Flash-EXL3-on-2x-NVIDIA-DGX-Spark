@@ -1,0 +1,18 @@
+{
+ "lane": "exl3",
+ "model": "GLM-5.3-Flash-EXL3",
+ "n": 6,
+ "prompt_tokens": 1623,
+ "first_prefill_tok_s": 2685,
+ "first_ttft_s": 0.6,
+ "warm_prefill_tok_s": 3099,
+ "warm_ttft_s": 0.52,
+ "all_tok_s": [
+  2685,
+  3150,
+  3062,
+  3127,
+  3088,
+  3099
+ ]
+}
