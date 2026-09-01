@@ -83,7 +83,7 @@ grid(ax,[("Weights","RedHatAI/GLM-5.3-Flash-NVFP4","brandonmusic/GLM-5.3-Flash-t
  cols_x=(0.03,0.36,0.68),top=0.82,fs=8.8,hdr=("","NVFP4  Reddie + Spark4","EXL3  Bluey + Asusi"))
 # speed table (computed edges)
 ax=panel(fig,0.04,0.545,0.92,0.15,"Speed · medians")
-ax.text(0.03,0.885,"non-stream · temp 0 · thinking off · decode = counting prompt, 3 rounds per level (c1: 5) · TTFT and prefill = fresh prompts, different text per request, 3 rounds",fontsize=7.3,color=MUT,va="center")
+ax.text(0.03,0.862,"non-stream · temp 0 · thinking off · decode = counting prompt, 3 rounds per level (c1: 5) · TTFT and prefill = fresh prompts, different text per request, 3 rounds",fontsize=7.3,color=MUT,va="center")
 grid(ax,[("c1 single-stream (n=5)",f"{c1n_v:.1f} tok/s",f"{c1e_v:.1f} tok/s",edge(c1n_v,c1e_v)),
  ("c6 aggregate",f"{c6n['agg_tok_s']:.1f} tok/s",f"{c6e['agg_tok_s']:.1f} tok/s",edge(c6n['agg_tok_s'],c6e['agg_tok_s'])),
  ("c6 per-stream",f"{c6n['per_stream_tok_s']:.1f} tok/s",f"{c6e['per_stream_tok_s']:.1f} tok/s",edge(c6n['per_stream_tok_s'],c6e['per_stream_tok_s'])),
@@ -96,7 +96,7 @@ grid(ax,[("c1 single-stream (n=5)",f"{c1n_v:.1f} tok/s",f"{c1e_v:.1f} tok/s",edg
  ("Agent loop, 30K doc re-sent 10 turns: TTFT med / total",f"{ag('nvfp4','long','ttft_med_s')}s / {ag('nvfp4','long','total_s')}s",f"{ag('exl3','long','ttft_med_s')}s / {ag('exl3','long','total_s')}s",(edge(ag('nvfp4','long','total_s'),ag('exl3','long','total_s'),higher=False) if AGS.get('nvfp4_long') and AGS.get('exl3_long') else "—")),
  ("Tokens per joule, GPU power, c4 load",f"{tpj('nvfp4')}",f"{tpj('exl3')}",(edge(tpj('nvfp4'),tpj('exl3')) if isinstance(tpj('nvfp4'),float) and isinstance(tpj('exl3'),float) else "—")),
  ("Run-to-run spread (c1, n=5)",spread(DN),spread(DE),"both stable")],
- cols_x=(0.03,0.36,0.60,0.82),top=0.80,fs=8.2,hdr=("","NVFP4","EXL3","Edge"),bold_last=True)
+ cols_x=(0.03,0.36,0.60,0.82),top=0.785,fs=8.2,hdr=("","NVFP4","EXL3","Edge"),bold_last=True)
 # sweep charts
 cs=[r["c"] for r in E]
 def sweep_ax(rect,key,ylabel,title,fmt):
