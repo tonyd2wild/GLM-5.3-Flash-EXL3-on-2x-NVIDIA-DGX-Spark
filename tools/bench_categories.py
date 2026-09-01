@@ -19,6 +19,7 @@ from html.parser import HTMLParser
 ap = argparse.ArgumentParser(); ap.add_argument("base"); ap.add_argument("model"); ap.add_argument("lane")
 ap.add_argument("--thinking", default="off", choices=["off", "on"]); ap.add_argument("--concurrency", type=int, default=1)
 ap.add_argument("--only", default=""); ap.add_argument("--max-tokens", type=int, default=0)
+ap.add_argument("--tag", default="", help="suffix for the output file, e.g. run2 (so repeats do not overwrite run 1)")
 a = ap.parse_args(); URL = a.base.rstrip("/") + "/v1/chat/completions"
 MAXTOK = a.max_tokens or (3000 if a.thinking == "on" else 900)
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -245,6 +246,6 @@ out = {"lane": a.lane, "model": a.model, "thinking": a.thinking, "concurrency": 
                    "ttft_med_s": round(statistics.median(r["ttft_s"] for r in results), 2), "decode_med_tok_s": round(statistics.median(r["decode_tok_s"] for r in results if r["decode_tok_s"]), 1),
                    "agg_tok_s_med": (round(statistics.median(b["agg_tok_s"] for b in batches), 1) if batches else None)},
        "items": results, "ts": time.strftime("%Y-%m-%d %H:%M")}
-path = f"results/categories_{a.lane}_{a.thinking}_c{a.concurrency}.json"; json.dump(out, open(path, "w"), indent=1)
+path = f"results/categories_{a.lane}_{a.thinking}_c{a.concurrency}{('_' + a.tag) if a.tag else ''}.json"; json.dump(out, open(path, "w"), indent=1)
 print(f"[{a.lane}/{a.thinking}/c{a.concurrency}] done: auto {out['overall']['auto_score']}, ttft med {out['overall']['ttft_med_s']}s, decode med {out['overall']['decode_med_tok_s']} tok/s" + (f", mixed agg med {out['overall']['agg_tok_s_med']} tok/s" if batches else "") + f" -> {path}")
 for c, s in summary.items(): print(f"    {c:10} auto={s['auto_score']}  ttft={s['ttft_med_s']}s  decode={s['decode_med_tok_s']}  tokens={s['tokens_med']}")

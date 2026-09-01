@@ -223,7 +223,7 @@ See `docs/article.html` §Reproduce, `tools/run_full_test.sh`, and the two repos
 ## Credits
 Reederey87 · MiaAI-Lab · brandonmusic (EXL3 quant, ShapleyMCG) · turboderp (exllamav3) · IncoAI (DFlash2) ·
 RedHatAI (NVFP4 weights) · zai-org (GLM-5.3-Flash) · malaiwah, drowzeys.
-Repos: github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-DFlash2-2x-DGX-Spark · github.com/tonyd2wild/glm53-flash-exl3-2x-dgx-spark
+Repos: github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-DFlash2-2x-DGX-Spark · github.com/tonyd2wild/GLM-5.3-Flash-EXL3-on-2x-NVIDIA-DGX-Spark
 
 ## Caveats
 One quality probe is not a quality study. Raise EXL3's `--max-num-seqs` and re-sweep c5–c8. Neither lane is the

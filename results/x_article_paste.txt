@@ -204,4 +204,4 @@ CREDITS AND LINKS
 
 NVFP4 recipe: github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-DFlash2-2x-DGX-Spark
 EXL3 kit: Reederey87's glm53-flash-exl3-2x-dgx-spark, weights by brandonmusic (GLM-5.3-Flash-tr3-4bpw), exllamav3 by turboderp, DFlash2 by IncoAI, NVFP4 weights by RedHatAI, GLM-5.3-Flash by zai-org. Thanks to dfi, Zeus and Mia for pushing on version one.
-Our fork with the fixes, every tool, the raw JSON for every number here and this write-up: github.com/tonyd2wild/glm53-flash-exl3-2x-dgx-spark.
+Our fork with the fixes, every tool, the raw JSON for every number here and this write-up: github.com/tonyd2wild/GLM-5.3-Flash-EXL3-on-2x-NVIDIA-DGX-Spark.

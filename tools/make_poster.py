@@ -126,7 +126,7 @@ for i,t in enumerate(["NVFP4: run the published 2-Spark recipe verbatim — 256 
 # hardware + footer
 ax=panel(fig,0.04,0.028,0.92,0.04,"Hardware")
 ax.text(0.03,0.42,"4× NVIDIA DGX Spark (GB10, sm_121a, 128 GB unified memory)  ·  ConnectX-7 RoCE v2 fabric, 192.168.192.0/24  ·  two boxes per lane, TP=2, vLLM mp executor\nBench client: Mac mini over Tailscale  ·  tools/bench_*.py + quality_battery.py  ·  NVFP4 worker loaded weights over NFS from its head (boot, not decode)",fontsize=8.4,va="center",color=INK)
-fig.text(0.04,0.016,"@tonyd2wild  ·  github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-DFlash2-2x-DGX-Spark  ·  github.com/tonyd2wild/glm53-flash-exl3-2x-dgx-spark",fontsize=9,fontweight="bold")
+fig.text(0.04,0.016,"@tonyd2wild  ·  github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-DFlash2-2x-DGX-Spark  ·  github.com/tonyd2wild/GLM-5.3-Flash-EXL3-on-2x-NVIDIA-DGX-Spark",fontsize=9,fontweight="bold")
 fig.text(0.04,0.005,"Credits: Reederey87 · MiaAI-Lab · brandonmusic (EXL3 quant) · turboderp (exllamav3) · IncoAI (DFlash2) · RedHatAI (NVFP4) · zai-org (GLM-5.3-Flash)",fontsize=8,color=MUT)
 fig.savefig("results/poster_nvfp4_vs_exl3.png",dpi=150); print("poster -> results/poster_nvfp4_vs_exl3.png")
 # ---------------- standalone charts (16:9, for the article/tweet) ----------------

@@ -245,7 +245,7 @@ a{{color:var(--ink);text-decoration-color:var(--rule);text-underline-offset:3px}
 <h3>NVFP4, the reference lane</h3>
 <p>The published 2-Spark recipe, <a href="https://github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-DFlash2-2x-DGX-Spark">tonyd2wild/GLM-5.3-Flash-NVFP4-DFlash2-2x-DGX-Spark</a>, run verbatim. Weights <code>RedHatAI/GLM-5.3-Flash-NVFP4</code>; image <code>ghcr.io/tonyd2wild/vllm-glm53-flash:sm121-v11-dflash2</code> with the sm121 sparse-attention patch; <code>--max-model-len 262144 --gpu-memory-utilization 0.85 --kv-cache-memory 3 GiB --max-num-seqs 6 --max-num-batched-tokens 8192 --block-size 2304 --moe-backend marlin --kv-cache-dtype fp8_e4m3 --enforce-eager</code>; DFlash2 drafter <code>incoai/GLM-5.3-Flash-DFlash2</code>, k=7 (92–100 % draft acceptance on structured output in this run); <code>vm.swappiness=0</code>; worker first, head 25 s later.</p>
 <h3>EXL3, the challenger</h3>
-<p>The <a href="https://github.com/Reederey87/glm53-flash-exl3-2x-dgx-spark">Reederey87 GB10 kit</a>, with <a href="https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks">MiaAI-Lab</a>'s sibling as cross-reference, built for our fabric. Weights <code>brandonmusic/GLM-5.3-Flash-tr3-4bpw</code>, EXL3 / TR3 trellis at 4 bits per weight, 120 shards, ~164 GiB, ~91 GiB resident per node; image built on the head from the kit's Dockerfile (exllamav3 compiled for <code>12.1a</code>); <code>--quantization exl3 --max-model-len 1000000 --gpu-memory-utilization 0.85 --kv-cache-memory-bytes 15414698763 --max-num-seqs 4 --max-num-batched-tokens 3584 --kv-cache-dtype fp8 --no-async-scheduling</code>; the same DFlash2 drafter at k=7. Every fix we needed is in our fork, <a href="https://github.com/tonyd2wild/glm53-flash-exl3-2x-dgx-spark">tonyd2wild/glm53-flash-exl3-2x-dgx-spark</a>.</p>
+<p>The <a href="https://github.com/Reederey87/glm53-flash-exl3-2x-dgx-spark">Reederey87 GB10 kit</a>, with <a href="https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks">MiaAI-Lab</a>'s sibling as cross-reference, built for our fabric. Weights <code>brandonmusic/GLM-5.3-Flash-tr3-4bpw</code>, EXL3 / TR3 trellis at 4 bits per weight, 120 shards, ~164 GiB, ~91 GiB resident per node; image built on the head from the kit's Dockerfile (exllamav3 compiled for <code>12.1a</code>); <code>--quantization exl3 --max-model-len 1000000 --gpu-memory-utilization 0.85 --kv-cache-memory-bytes 15414698763 --max-num-seqs 4 --max-num-batched-tokens 3584 --kv-cache-dtype fp8 --no-async-scheduling</code>; the same DFlash2 drafter at k=7. Every fix we needed is in our fork, <a href="https://github.com/tonyd2wild/GLM-5.3-Flash-EXL3-on-2x-NVIDIA-DGX-Spark">tonyd2wild/GLM-5.3-Flash-EXL3-on-2x-NVIDIA-DGX-Spark</a>.</p>
 <p>Both lanes: fp8 KV cache, thinking disabled, the multimodal chat template, native <code>image_url</code> input (a 64×64 red square came back "Red" on both).</p>
 
 <h2>Method</h2>
@@ -298,7 +298,7 @@ sudo sysctl -w vm.swappiness=0; sync; echo 3 | sudo tee /proc/sys/vm/drop_caches
 ./launch-glm53-vllm-tp2-dflash2.sh 1 ; sleep 25 ; ./launch-glm53-vllm-tp2-dflash2.sh 0
 until curl -sf http://&lt;head&gt;:8000/health; do sleep 20; done
 
-# EXL3, on the head: clone tonyd2wild/glm53-flash-exl3-2x-dgx-spark
+# EXL3, on the head: clone tonyd2wild/GLM-5.3-Flash-EXL3-on-2x-NVIDIA-DGX-Spark
 docker build -t glm53-flash-sm121:local . ; cp .env.example .env   # IPs, WORKER_SSH, RoCE NIC + GID
 sudo chown -R $USER ~/.cache/vllm-glm53-flash ; sync; echo 3 | sudo tee /proc/sys/vm/drop_caches   # both nodes
 set -a; . ./.env; set +a; ./local/prod-start.sh
@@ -324,7 +324,7 @@ bash tools/run_full_test.sh http://&lt;head&gt;:8000 &lt;served-model&gt; &lt;la
 <li>Raise EXL3's <code>--max-num-seqs</code> and re-sweep c5–c8; re-bench NVFP4 with the repo's code prompt after a long soak.</li>
 <li>Neither lane here is the abliterated variant; both are the base model. Two specific quants on one specific cluster.</li>
 </ul>
-<footer>@tonyd2wild · <a href="https://github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-DFlash2-2x-DGX-Spark">NVFP4 recipe</a> · <a href="https://github.com/tonyd2wild/glm53-flash-exl3-2x-dgx-spark">EXL3 fork, tools and results</a> · {ts[:10]}</footer>
+<footer>@tonyd2wild · <a href="https://github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-DFlash2-2x-DGX-Spark">NVFP4 recipe</a> · <a href="https://github.com/tonyd2wild/GLM-5.3-Flash-EXL3-on-2x-NVIDIA-DGX-Spark">EXL3 fork, tools and results</a> · {ts[:10]}</footer>
 </div>
 """
 os.makedirs("docs", exist_ok=True); open("docs/article.html", "w").write(html)
@@ -428,7 +428,7 @@ See `docs/article.html` §Reproduce, `tools/run_full_test.sh`, and the two repos
 ## Credits
 Reederey87 · MiaAI-Lab · brandonmusic (EXL3 quant, ShapleyMCG) · turboderp (exllamav3) · IncoAI (DFlash2) ·
 RedHatAI (NVFP4 weights) · zai-org (GLM-5.3-Flash) · malaiwah, drowzeys.
-Repos: github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-DFlash2-2x-DGX-Spark · github.com/tonyd2wild/glm53-flash-exl3-2x-dgx-spark
+Repos: github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-DFlash2-2x-DGX-Spark · github.com/tonyd2wild/GLM-5.3-Flash-EXL3-on-2x-NVIDIA-DGX-Spark
 
 ## Caveats
 One quality probe is not a quality study. Raise EXL3's `--max-num-seqs` and re-sweep c5–c8. Neither lane is the
