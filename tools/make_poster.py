@@ -22,7 +22,7 @@ def grid(ax,rows,cols_x,top=0.80,dy=None,fs=9.5,hdr=None,bold_last=False):
         for j,(x,t) in enumerate(zip(cols_x,r)):
             ax.text(x,y,t,fontsize=fs,color=INK if j else MUT,va="center",fontweight="bold" if (bold_last and j==len(r)-1) else "normal",family="DejaVu Sans Mono" if j else "DejaVu Sans")
 # ---------------- poster ----------------
-fig=plt.figure(figsize=(12,22),dpi=150)
+fig=plt.figure(figsize=(12,23),dpi=150)
 fig.text(0.5,0.975,"NVFP4  vs  EXL3",ha="center",va="center",fontsize=30,fontweight="bold")
 fig.text(0.5,0.958,"GLM-5.3-Flash on dual DGX Spark  ·  same model, two 4-bit quants, two 2-node lanes, benched at the same time",ha="center",fontsize=11,color=MUT)
 fig.text(0.5,0.945,"2026-09-01   ·   2× DGX Spark GB10 per lane   ·   CX7 RoCE rail 0   ·   TP=2 each   ·   isolated: relay parked, monitor paused, access logs = bench client only",ha="center",fontsize=8.5,color=MUT)
@@ -43,7 +43,8 @@ grid(ax,[("Weights","RedHatAI/GLM-5.3-Flash-NVFP4","brandonmusic/GLM-5.3-Flash-t
  cols_x=(0.03,0.36,0.68),top=0.82,fs=9,hdr=("","NVFP4  Reddie + Spark4","EXL3  Bluey + Asusi"))
 # speed table
 c1e,c6e=E[0],E[5]; c1n,c6n=N[0],N[5]
-ax=panel(fig,0.04,0.545,0.92,0.15,"Speed  (non-stream · temp 0 · thinking off · ~300-token gens · medians)")
+ax=panel(fig,0.04,0.545,0.92,0.15,"Speed · medians")
+ax.text(0.03,0.855,"non-stream · temp 0 · thinking off · ~300-token gens · 3 rounds per level",fontsize=7.5,color=MUT,va="center")
 grid(ax,[("c1 single-stream",f"{c1n['agg_tok_s']:.1f} tok/s",f"{c1e['agg_tok_s']:.1f} tok/s",f"{c1e['agg_tok_s']/c1n['agg_tok_s']:.1f}× faster"),
  ("c6 aggregate",f"{c6n['agg_tok_s']:.1f} tok/s",f"{c6e['agg_tok_s']:.1f} tok/s",f"{c6e['agg_tok_s']/c6n['agg_tok_s']:.1f}× faster"),
  ("c6 per-stream",f"{c6n['per_stream_tok_s']:.1f} tok/s",f"{c6e['per_stream_tok_s']:.1f} tok/s",f"{c6e['per_stream_tok_s']/c6n['per_stream_tok_s']:.1f}× faster"),
@@ -63,29 +64,30 @@ def sweep_ax(rect,key,ylabel,title,fmt):
     ax.set_xticks(cs); ax.set_xticklabels([f"c{c}" for c in cs]); ax.set_xlim(0.6,6.9)
     ax.set_ylabel(ylabel,fontsize=8.5); ax.set_title(title,fontsize=10,fontweight="bold",loc="left",color=INK)
     ax.grid(axis="y",color=RULE,lw=0.6); ax.spines[["top","right"]].set_visible(False)
-    ax.legend(frameon=False,fontsize=8,loc="upper left",labelcolor=INK)
+    ax.legend(frameon=False,fontsize=8,loc=("upper right" if "Per-stream" in title else "upper left"),labelcolor=INK)
     return ax
-sweep_ax([0.08,0.395,0.40,0.12],"agg_tok_s","tokens / s","Aggregate throughput vs concurrency",lambda v:f"{v:.0f}")
-sweep_ax([0.56,0.395,0.40,0.12],"ttft_med_s","seconds","Time to first token vs concurrency",lambda v:f"{v:.1f}s")
-sweep_ax([0.08,0.245,0.40,0.12],"per_stream_tok_s","tokens / s","Per-stream decode vs concurrency",lambda v:f"{v:.0f}")
-sweep_ax([0.56,0.245,0.40,0.12],"w2w_med_s","seconds","Wall-to-wall, 300-token answer (median)",lambda v:f"{v:.1f}s")
+sweep_ax([0.08,0.405,0.40,0.115],"agg_tok_s","tokens / s","Aggregate throughput vs concurrency",lambda v:f"{v:.0f}")
+sweep_ax([0.56,0.405,0.40,0.115],"ttft_med_s","seconds","Time to first token vs concurrency",lambda v:f"{v:.1f}s")
+sweep_ax([0.08,0.262,0.40,0.115],"per_stream_tok_s","tokens / s","Per-stream decode vs concurrency",lambda v:f"{v:.0f}")
+sweep_ax([0.56,0.262,0.40,0.115],"w2w_med_s","seconds","Wall-to-wall, 300-token answer (median)",lambda v:f"{v:.1f}s")
 # why + pins
-ax=panel(fig,0.04,0.13,0.45,0.10,"Why EXL3 is the pick")
-for i,(h,t) in enumerate([("5.7× prefill","0.50 s to first token vs 2.9 s"),("1.6–1.8× decode","holds at c6: 35.9 vs 21.9 per stream"),
- ("4.7× KV pool","1.40 M vs 295 K tokens on the same 2 boxes"),("1 M context","vs 256 K; NVFP4 at 1 M starves its KV pool at TP2"),
- ("±0.5% stable","NVFP4 swung ±16% while still JIT-ing"),("Quality tie","both: ANSWER $0.05 + correct O(n log k)")]):
-    x=0.03+(i%3)*0.33; y=0.72-(i//3)*0.40
-    ax.text(x,y,h,fontsize=10,fontweight="bold",va="top"); ax.text(x,y-0.15,t,fontsize=7.6,color=MUT,va="top",wrap=True)
-ax=panel(fig,0.51,0.13,0.45,0.10,"Pins that matter")
-for i,t in enumerate(["NVFP4: run the published 2-Spark recipe verbatim — 256 K ctx, worker first, +25 s head","NVFP4: vm.swappiness=0 (resets on reboot) · poll /health, never /v1/models",
- "EXL3 kit: count_shards needs find -L on an HF cache · chown ~/.cache/vllm-glm53-flash on both nodes","EXL3 kit: --host 0.0.0.0 (ships loopback) · worker needs the full 164 GiB · drop caches before launch",
- "Both: 91 GiB weights per 121 GiB node — every failure today was a spike on top of that","Both: JIT compiles per request shape — never bench a cold lane"]):
-    ax.text(0.03,0.80-i*0.135,"•  "+t,fontsize=7.6,va="top",color=INK)
+ax=panel(fig,0.04,0.165,0.92,0.075,"Why EXL3 is the pick")
+for i,(h,t) in enumerate([("5.7× prefill","0.50 s to first token vs 2.9 s"),("1.6–1.7× decode","c6 per-stream 35.9 vs 21.0"),
+ ("4.7× KV pool","1.40 M vs 295 K tokens"),("1 M context","vs 256 K on the same 2 boxes"),
+ ("±0.5% stable","NVFP4 swung ±16%"),("Quality tie","both ANSWER $0.05, top-k OK")]):
+    x=0.03+i*0.16
+    ax.text(x,0.60,h,fontsize=10.5,fontweight="bold",va="center"); ax.text(x,0.30,t,fontsize=7.6,color=MUT,va="center")
+ax=panel(fig,0.04,0.075,0.92,0.082,"Pins that matter")
+for i,t in enumerate(["NVFP4: run the published 2-Spark recipe verbatim — 256 K context, worker first, head 25 s later · vm.swappiness=0 resets on reboot · poll /health, never /v1/models",
+ "EXL3 kit: count_shards needs find -L on an HF cache · chown ~/.cache/vllm-glm53-flash on both nodes · --host 0.0.0.0 (it ships loopback) · worker needs the full 164 GiB",
+ "Both: ~91 GiB of weights per 121 GiB node — every failure today was a transient spike on top of that · drop caches on every node before every launch",
+ "Both: kernels JIT-compile per request shape — warm up 2×c1 + 1×c6 and never bench a cold lane · EXL3 max-num-seqs 4 caps c5–c6 (config, not the quant)"]):
+    ax.text(0.03,0.76-i*0.20,"•  "+t,fontsize=7.6,va="top",color=INK)
 # hardware + footer
-ax=panel(fig,0.04,0.045,0.92,0.075,"Hardware")
-ax.text(0.03,0.55,"4× NVIDIA DGX Spark (GB10, sm_121a, 128 GB unified memory)  ·  ConnectX-7 RoCE v2 fabric, 192.168.192.0/24  ·  two boxes per lane, TP=2, vLLM mp executor\nBench client: Mac mini over Tailscale  ·  tools/bench_sweep.py, 3 rounds per level  ·  NVFP4 worker loaded weights over NFS from its head (boot, not decode)",fontsize=8.6,va="center",color=INK)
-fig.text(0.04,0.018,"@tonyd2wild  ·  github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-DFlash2-2x-DGX-Spark  ·  github.com/tonyd2wild/glm53-flash-exl3-2x-dgx-spark",fontsize=9,fontweight="bold")
-fig.text(0.04,0.006,"Credits: Reederey87 · MiaAI-Lab · brandonmusic (EXL3 quant) · turboderp (exllamav3) · IncoAI (DFlash2) · RedHatAI (NVFP4) · zai-org (GLM-5.3-Flash)",fontsize=8,color=MUT)
+ax=panel(fig,0.04,0.028,0.92,0.04,"Hardware")
+ax.text(0.03,0.42,"4× NVIDIA DGX Spark (GB10, sm_121a, 128 GB unified memory)  ·  ConnectX-7 RoCE v2 fabric, 192.168.192.0/24  ·  two boxes per lane, TP=2, vLLM mp executor\nBench client: Mac mini over Tailscale  ·  tools/bench_sweep.py, 3 rounds per level  ·  NVFP4 worker loaded weights over NFS from its head (boot, not decode)",fontsize=8.6,va="center",color=INK)
+fig.text(0.04,0.016,"@tonyd2wild  ·  github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-DFlash2-2x-DGX-Spark  ·  github.com/tonyd2wild/glm53-flash-exl3-2x-dgx-spark",fontsize=9,fontweight="bold")
+fig.text(0.04,0.005,"Credits: Reederey87 · MiaAI-Lab · brandonmusic (EXL3 quant) · turboderp (exllamav3) · IncoAI (DFlash2) · RedHatAI (NVFP4) · zai-org (GLM-5.3-Flash)",fontsize=8,color=MUT)
 fig.savefig("results/poster_nvfp4_vs_exl3.png",dpi=150); print("poster -> results/poster_nvfp4_vs_exl3.png")
 # ---------------- standalone charts (16:9, for the article/tweet) ----------------
 for key,ylabel,title,fmt,fn in [("agg_tok_s","tokens / s","Aggregate throughput vs concurrency — GLM-5.3-Flash, 2× DGX Spark per lane",lambda v:f"{v:.0f}","chart_agg"),

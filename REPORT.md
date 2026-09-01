@@ -2,6 +2,12 @@
 
 *2Wild fleet report, 2026-09-01. Author: tonyd2wild (deploy + bench run with Kai).*
 
+> **⚠️ SUPERSEDED — DO NOT CITE (2026-09-01 21:00 ET).** Every NVFP4 figure below was measured on nodes
+> later found to be running at a locked ~611–728 MHz SM clock after their reboots (the EXL3 nodes were
+> at ~2,490–2,500 MHz under the same load). The NVFP4 configuration itself was correct (DFlash2 k=7,
+> 92–100 % draft acceptance). All four nodes are being restarted and **both lanes will be re-tested from
+> scratch in the same state**; this document will be rewritten from those results.
+
 ## TL;DR
 
 We ran the same 320B-parameter MoE model, **GLM-5.3-Flash**, in two 4-bit quantizations on two

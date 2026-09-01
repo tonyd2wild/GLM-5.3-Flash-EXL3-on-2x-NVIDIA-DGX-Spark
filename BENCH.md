@@ -1,5 +1,10 @@
 # Bench — EXL3 vs NVFP4 (GLM-5.3-Flash, same 4-Spark cluster)
 
+> **⚠️ SUPERSEDED — DO NOT CITE (2026-09-01 21:00 ET).** All NVFP4 numbers on this page were taken while
+> Reddie and Spark4 were pinned at ~611–728 MHz SM clock post-reboot (EXL3's nodes ran ~2,500 MHz). The
+> NVFP4 config was correct (DFlash2 k=7, 92–100 % draft acceptance); the silicon was capped. Both lanes
+> are being re-tested from scratch after a full restart; this page will be regenerated from those runs.
+
 Both lanes are the *same* base model (GLM-5.3-Flash), same fabric, same DFlash2 drafter,
 so this is a clean quant-vs-quant comparison.
 
