@@ -15,6 +15,9 @@ def q(l):
     p = f"results/quality_{l}.txt"; t = open(p).read() if os.path.exists(p) else ""
     return ("correct" if "ANSWER: $0.05" in t else ("wrong" if "ANSWER:" in t else "n/a"))
 qe, qn = q("exl3"), q("nvfp4")
+BOOT = json.load(open("results/boot.json")) if os.path.exists("results/boot.json") else {}
+def boot(l):
+    b = BOOT.get(l, {}); return (f"{b['min']} min ({b['note']})" if b.get("min") else "—")
 e1, n1, e6, n6 = er[0], nr[0], er[-1], nr[-1]
 pe = max(r["agg_tok_s"] for r in er); pe_c = [r["c"] for r in er if r["agg_tok_s"] == pe][0]
 pn = max(r["agg_tok_s"] for r in nr); pn_c = [r["c"] for r in nr if r["agg_tok_s"] == pn][0]
@@ -42,6 +45,7 @@ summary = f"""## Headline (isolated, both lanes benched simultaneously, {ts})
 | max context | {CTX['nvfp4']:,} | **{CTX['exl3']:,}** | {r(CTX['exl3'], CTX['nvfp4'], 0)} |
 | KV pool (tokens) | {KV['nvfp4']:,} | **{KV['exl3']:,}** | {r(KV['exl3'], KV['nvfp4'])} |
 | quality probe | {qn} | {qe} | {'tie' if qe == qn else 'differs'} |
+| boot: launch → /health 200 | {boot('nvfp4')} | {boot('exl3')} | |
 
 ## Sweep c1–c6 (3 rounds per level)
 | c | NVFP4 agg | per-stream | wall-to-wall | TTFT | EXL3 agg | per-stream | wall-to-wall | TTFT |
@@ -106,6 +110,7 @@ a{{color:var(--ink);text-decoration-color:var(--rule);text-underline-offset:3px}
 <tr><td>max context that booted</td><td>{CTX['nvfp4']:,}</td><td><b>{CTX['exl3']:,}</b></td><td><b>{r(CTX['exl3'], CTX['nvfp4'], 0)}</b></td></tr>
 <tr><td>KV pool (engine startup line)</td><td>{KV['nvfp4']:,} tokens</td><td><b>{KV['exl3']:,} tokens</b></td><td><b>{r(KV['exl3'], KV['nvfp4'])}</b></td></tr>
 <tr><td>quality probe (code + reasoning trap)</td><td>{qn}</td><td>{qe}</td><td>{'tie' if qe == qn else 'differs'}</td></tr>
+<tr><td>boot: launch → /health 200</td><td>{boot('nvfp4')}</td><td>{boot('exl3')}</td><td></td></tr>
 </tbody></table></div>
 
 <h2>Hardware and topology</h2>
@@ -138,6 +143,7 @@ a{{color:var(--ink);text-decoration-color:var(--rule);text-underline-offset:3px}
 <h2>Discussion</h2>
 <p><b>Where the speed comes from.</b> The largest gap is prefill, {r(e1['prefill_tok_s'], n1['prefill_tok_s'])}. EXL3's fused trellis MoE kernels prefill a 1.5K prompt in {e1['ttft_med_s']} s; the NVFP4 marlin path took {n1['ttft_med_s']} s. For agents that is the number users feel: time to first token. Decode is {r(e1['agg_tok_s'], n1['agg_tok_s'])} faster at c1 and {r(e6['per_stream_tok_s'], n6['per_stream_tok_s'])} per stream at c6.</p>
 <p><b>Context and KV.</b> EXL3 serves {CTX['exl3']:,} tokens of context with a {KV['exl3']:,}-token KV pool on the same two boxes on which the NVFP4 recipe serves {CTX['nvfp4']:,} with a {KV['nvfp4']:,}-token pool. NVFP4 at TP2 cannot be launched at 1M: an adapted launcher with <code>--max-model-len 1048576</code> produced three worker reboots on <code>NVRM: NV_ERR_NO_MEMORY</code> and a 24-minute stall until the published 256K recipe was run verbatim.</p>
+<p><b>Boot and load time.</b> Measured on this same-state run from launch command to first <code>/health</code> 200: EXL3 {boot('exl3')}; NVFP4 {boot('nvfp4')}. NVFP4's worker reads its weights over NFS from the head on this cluster (no local copy of the base on Spark4); a local copy would put it closer to the recipe's ~15 min. Both lanes JIT-compile kernels on first boot; a wiped cache adds minutes to either.</p>
 <p><b>Memory.</b> Each lane holds ~91 GiB of weights per 121 GiB node; every failure we hit was a transient spike on top of that baseline. Drop caches on every node before every launch; <code>free -g</code> under-reports on GB10.</p>
 
 <h2>What broke, and the fixes</h2>
@@ -185,5 +191,101 @@ bash tools/run_full_test.sh http://&lt;head&gt;:8000 &lt;served-model&gt; &lt;la
 </div>
 """
 os.makedirs("docs", exist_ok=True); open("docs/article.html", "w").write(html)
-print(f"article: docs/article.html ({len(html)//1024} KB) · summary: results/summary.md")
+
+# ---- REPORT.md (markdown mirror of the page, same variables) + thin BENCH.md ----
+link = os.environ.get("ARTICLE_URL", "docs/article.html")
+report = f"""# NVFP4 vs EXL3 for GLM-5.3-Flash on DGX Spark
+
+*2Wild fleet report · {ts[:10]} · tonyd2wild (deploy + bench with Kai) · published page: {link}*
+
+## TL;DR
+The same 320B MoE, GLM-5.3-Flash, in two 4-bit quantizations, on two independent 2-node DGX Spark pairs, benched
+**at the same time in the same state** (all four nodes restarted together, clocks verified under load), isolated from
+every other consumer. EXL3 / TR3 4bpw delivered {r(e1['agg_tok_s'], n1['agg_tok_s'])} the single-stream decode,
+{r(pe, pn)} the peak aggregate ({pe} at c{pe_c} vs {pn} at c{pn_c}), {r(e1['prefill_tok_s'], n1['prefill_tok_s'])} the prefill,
+{e1['ttft_med_s']} s to first token vs {n1['ttft_med_s']} s, 4× the context with {r(KV['exl3'], KV['nvfp4'])} the KV pool, and
+{'the same answer' if qe == qn else 'a different answer'} on the quality probe.
+
+{summary}
+## Hardware and topology
+Four NVIDIA DGX Spark (GB10, sm_121a, 128 GB unified memory, ~121 GB usable) on a ConnectX-7 RoCE v2 fabric,
+192.168.192.0/24, rail 0 (`enp1s0f0np0` / `rocep1s0f0`, GID 3). Reddie (.2) heads NVFP4 with Spark4 (.4);
+Bluey (.1) heads EXL3 with Asusi (.3). Both lanes TP=2 across two nodes (vLLM mp executor, NCCL over RoCE);
+they share nothing but the switch. Bench client: a Mac mini on the same tailnet.
+
+**Clock state matters on GB10.** An earlier run was thrown out: after a reboot, Reddie and Spark4 came up pinned at
+611–728 MHz SM clock under load (EXL3's nodes ran ~2,500) and NVFP4 measured 36 tok/s with a perfect 92–100 % draft
+acceptance. All four were restarted together and verified under real decode load before this run: healthy GB10s here
+settle at ~2,170–2,180 MHz at ~96 % utilization. Check `nvidia-smi --query-gpu=clocks.sm` under load after any
+Spark reboot before trusting a throughput number.
+
+## The two lanes
+**NVFP4 (reference).** The published 2-Spark recipe run verbatim: weights `RedHatAI/GLM-5.3-Flash-NVFP4`; image
+`ghcr.io/tonyd2wild/vllm-glm53-flash:sm121-v11-dflash2`; `--max-model-len 262144 --gpu-memory-utilization 0.85
+--kv-cache-memory 3 GiB --max-num-seqs 6 --max-num-batched-tokens 8192 --block-size 2304 --moe-backend marlin
+--kv-cache-dtype fp8_e4m3 --enforce-eager`; DFlash2 drafter k=7 (92–100 % draft acceptance on structured output);
+`vm.swappiness=0`; worker first, head 25 s later.
+
+**EXL3 (challenger).** Reederey87's GB10 kit (MiaAI-Lab's sibling as cross-reference) built for our fabric: weights
+`brandonmusic/GLM-5.3-Flash-tr3-4bpw` (EXL3/TR3, 4 bpw, 120 shards, ~164 GiB, ~91 GiB resident per node);
+exllamav3 compiled for `12.1a`; `--quantization exl3 --max-model-len 1000000 --gpu-memory-utilization 0.85
+--kv-cache-memory-bytes 15414698763 --max-num-seqs 4 --max-num-batched-tokens 3584 --kv-cache-dtype fp8
+--no-async-scheduling`; same DFlash2 drafter k=7. Both lanes: fp8 KV, thinking off, multimodal chat template,
+native `image_url` (a red square came back "Red" on both).
+
+## Method
+**Isolation.** Relay parked on the 3090 27B, latency dashboard paused (it sends real probe completions), the three
+Hermes supervisors that default to `glm-5.3-flash` moved to the 27B; after each run the head's access log shows chat
+POSTs from the bench client only, with counts matching the requests issued (the supervisors share the client's IP,
+so only counts prove it). **Simultaneity.** Both lanes benched in parallel; no shared GPUs, memory or NCCL group.
+**Warm-up.** 2× c1 + 1× c6 before measuring; both engines JIT-compile per request shape — never bench a cold lane.
+**Metrics.** Median tokens/s, non-streaming. c1–c6: 3 rounds of c concurrent ~300-token generations; aggregate =
+Σ tokens / round wall; per-stream = each request's tokens / its wall; wall-to-wall = end-to-end latency (median).
+TTFT at level c: c concurrent ~1.5K-token prompts with an 8-token answer. Detailed run: c1 ×5 for the spread.
+Temperature 0, `stream false`, thinking off, identical prompts. Tools in `tools/`.
+
+## Reading the curve
+EXL3 scales to {pe} tok/s at c{pe_c} and flattens — the kit's `--max-num-seqs 4` (a config cap, not the quant).
+NVFP4 (`--max-num-seqs 6`) admits all six but pays per stream: {n1['per_stream_tok_s']} → {n6['per_stream_tok_s']} tok/s,
+TTFT {n1['ttft_med_s']} → {n6['ttft_med_s']} s, wall-to-wall {n1['w2w_med_s']} → {n6['w2w_med_s']} s.
+
+## Quality
+Same prompt to both, thinking off, temp 0: `top_k_frequent` in O(n log k) + the bat-and-ball trap. EXL3 {qe}, NVFP4 {qn}.
+Published KLD: EXL3/TR3 4bpw ~0.025 (ties FP8), NVFP4 ~0.060; one probe of this difficulty
+{'did not surface a gap' if qe == qn else 'surfaced a difference'}. Harder probes are open items.
+
+## Boot and load time
+Launch command → first `/health` 200, this run: EXL3 {boot('exl3')}; NVFP4 {boot('nvfp4')}. NVFP4's worker reads its
+weights over NFS from the head on this cluster (no local copy of the base on Spark4). Both JIT-compile on first boot.
+
+## What broke, and the fixes
+- EXL3 kit: `count_shards()` uses `find -type f` (misses HF-cache symlinks) → "0 / 120 shards"; fix `find -L`.
+- EXL3 kit: worker needs the full ~164 GiB; root-owned `~/.cache/vllm-glm53-flash` kills the launch silently (chown);
+  binds `--host 127.0.0.1` (set `0.0.0.0`).
+- NVFP4: run the published recipe verbatim (1M context starves the KV pool at TP2: three NVRM OOM reboots + a stall).
+  `vm.swappiness=0` resets on reboot. Poll `/health`, not `/v1/models`.
+- Both: verify SM clocks under load after any reboot; drop caches on every node before every launch.
+
+## Reproduce
+See `docs/article.html` §Reproduce, `tools/run_full_test.sh`, and the two repos below.
+
+## Credits
+Reederey87 · MiaAI-Lab · brandonmusic (EXL3 quant, ShapleyMCG) · turboderp (exllamav3) · IncoAI (DFlash2) ·
+RedHatAI (NVFP4 weights) · zai-org (GLM-5.3-Flash) · malaiwah, drowzeys.
+Repos: github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-DFlash2-2x-DGX-Spark · github.com/tonyd2wild/glm53-flash-exl3-2x-dgx-spark
+
+## Caveats
+One quality probe is not a quality study. Raise EXL3's `--max-num-seqs` and re-sweep c5–c8. Neither lane is the
+abliterated variant. Two specific quants on one specific cluster.
+"""
+open("REPORT.md", "w").write(report)
+open("BENCH.md", "w").write(f"""# Bench — EXL3 vs NVFP4 (GLM-5.3-Flash, same 4-Spark cluster)
+
+Canonical results live in `results/` (sweep JSON per lane, detailed JSON, quality answers, boot.json) and are
+rendered by `tools/make_article.py` into `REPORT.md`, `results/summary.md` and `docs/article.html`.
+Method: 2Wild house rule — throughput = median tok/s, non-stream; isolate the lane, warm it, verify clocks under load.
+
+{summary}
+""")
+print(f"article: docs/article.html ({len(html)//1024} KB) · summary: results/summary.md · REPORT.md · BENCH.md")
 print(summary.split("## Sweep")[0])
