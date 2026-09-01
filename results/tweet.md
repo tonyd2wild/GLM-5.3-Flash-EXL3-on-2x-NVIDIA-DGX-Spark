@@ -64,3 +64,5 @@ What EXL3 keeps: the cache itself (replays 211K in 0.8 s vs 9 s), mixed load of 
 Quality on 40 real prompts across 8 categories: 86% vs 85%, judge 9/8/13. Tie. EXL3 loops into self-correction with thinking off; thinking on fixes it.
 
 NVFP4 for fresh single-shot work. EXL3 for agents that re-send long context every turn. Updated tables, method and the mistake, in the article.
+
+Showdown card (our numbers, showdown layout, charcoal/white): results/showdown_nvfp4_vs_exl3.png
