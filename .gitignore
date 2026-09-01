@@ -1,0 +1,9 @@
+# never commit a real env (only .env.example ships)
+.env
+*.env
+!.env.example
+# local scratch
+*.log
+__pycache__/
+*.pyc
+.DS_Store
