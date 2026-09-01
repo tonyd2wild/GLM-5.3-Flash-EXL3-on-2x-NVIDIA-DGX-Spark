@@ -1,0 +1,59 @@
+{
+ "label": "NVFP4 Reddie+Spark4 TP2",
+ "model": "glm-5.3-flash",
+ "base": "http://100.113.138.96:8000",
+ "rounds": 3,
+ "gen_tokens": 300,
+ "rows": [
+  {
+   "c": 1,
+   "agg_tok_s": 38.3,
+   "per_stream_tok_s": 38.3,
+   "w2w_med_s": 8.36,
+   "w2w_p90_s": 8.52,
+   "ttft_med_s": 2.87,
+   "prefill_tok_s": 565
+  },
+  {
+   "c": 2,
+   "agg_tok_s": 68.5,
+   "per_stream_tok_s": 34.3,
+   "w2w_med_s": 9.34,
+   "w2w_p90_s": 9.44,
+   "ttft_med_s": 4.69
+  },
+  {
+   "c": 3,
+   "agg_tok_s": 94.6,
+   "per_stream_tok_s": 31.5,
+   "w2w_med_s": 10.15,
+   "w2w_p90_s": 10.71,
+   "ttft_med_s": 6.49
+  },
+  {
+   "c": 4,
+   "agg_tok_s": 66.0,
+   "per_stream_tok_s": 28.6,
+   "w2w_med_s": 11.19,
+   "w2w_p90_s": 19.39,
+   "ttft_med_s": 6.46
+  },
+  {
+   "c": 5,
+   "agg_tok_s": 80.7,
+   "per_stream_tok_s": 29.0,
+   "w2w_med_s": 11.03,
+   "w2w_p90_s": 21.32,
+   "ttft_med_s": 6.47
+  },
+  {
+   "c": 6,
+   "agg_tok_s": 85.7,
+   "per_stream_tok_s": 21.0,
+   "w2w_med_s": 16.86,
+   "w2w_p90_s": 22.99,
+   "ttft_med_s": 9.79
+  }
+ ],
+ "ts": "2026-09-01 16:51:27"
+}
