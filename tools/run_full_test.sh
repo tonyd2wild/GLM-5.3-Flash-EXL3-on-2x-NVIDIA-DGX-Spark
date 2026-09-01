@@ -4,6 +4,7 @@
 set -uo pipefail
 BASE="$1"; MODEL="$2"; L="$3"; cd "$(dirname "$0")/.."
 echo "=== [$L] sweep c1-c6 ==="; python3 tools/bench_sweep.py "$BASE" "$MODEL" "$L" --rounds 3 --max-c 6 --out "results/sweep_${L}.json"
-echo "=== [$L] detailed c1x5 / c6x3 / prefill x3 ==="; python3 tools/bench_detailed.py "$BASE" "$MODEL" "$L" --c1 5 --c6 3 --prefill 3 | tail -6
+echo "=== [$L] detailed c1x5 / c6x3 / prefill x3 ==="; python3 tools/bench_detailed.py "$BASE" "$MODEL" "$L" --c1 5 --c6 3 --prefill 3 | tee "results/detailed_${L}.log" | tail -6
+grep -m1 "^JSON " "results/detailed_${L}.log" | sed 's/^JSON //' > "results/detailed_${L}.json"
 echo "=== [$L] quality probe ==="; python3 tools/quality_probe.py "$BASE" "$MODEL" "results/quality_${L}.txt" | head -2
 echo "=== [$L] done $(date '+%H:%M:%S') ==="
