@@ -50,3 +50,15 @@ Endpoint for the fleet is unchanged (still Reddie:8000).
 - [ ] bench EXL3 vs NVFP4 → BENCH.md (median tok/s non-stream, single + c4 agg)
 - [ ] quality diff on hard prompts (code / reasoning / tool-call / long-ctx)
 - [ ] decide prod default (quality vs speed) with Tony
+
+## Publishing checklist (before flipping this repo public)
+Intent: this goes public eventually (deploy notes people can't find elsewhere). Keep it clean.
+- [ ] No secrets anywhere in tree OR history (only `.env.example` ships; real `.env` gitignored).
+- [ ] Genericize internal identifiers in `.env.example` to placeholders (node usernames, LAN IPs) —
+      keep one concrete example in a comment so it's still copy-pasteable.
+- [ ] Add a LICENSE for our own content; add a NOTICE / CREDITS honoring upstream terms
+      (Reederey87 + MiaAI-Lab carry LICENSE/NOTICE; brandonmusic quant = ShapleyMCG; turboderp exllamav3; IncoAI DFlash2; zai-org GLM).
+- [ ] We reference upstream repos + HF weights — we do NOT redistribute their weights or their
+      Dockerfile/start.sh in our repo. If we ever vendor their scripts, comply with their license first.
+- [ ] Final read-through of every committed file + `git log -p` for anything internal-only.
+- [ ] Tony's explicit go before the private→public flip.
