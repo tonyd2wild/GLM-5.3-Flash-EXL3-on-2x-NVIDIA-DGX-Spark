@@ -10,18 +10,32 @@ so this is a clean quant-vs-quant comparison.
 Throughput = **median tokens/sec, non-streaming** (2Wild house rule — throughput, not "decode").
 Warmed. Same prompts on both. Report single-stream and aggregate @ concurrency 4.
 
-## Speed (measured 2026-09-01 from the Mac over tailnet; warmed, temp 0, thinking OFF, 256-tok gens)
+## Speed — isolated, parallel, detailed (2026-09-01, 20:18–20:23 ET)
+
+Both lanes benched **simultaneously** (independent TP2 pairs, no shared GPUs) from the Mac over tailnet
+with `tools/bench_detailed.py`. **Isolation:** spark-flash relay parked on the 3090 27B, latency monitor
+paused; each head's access log shows chat POSTs from the bench client only — NVFP4 48, EXL3 43, exactly
+the request counts issued. Non-stream, temp 0, thinking OFF, identical prompts, ~300-token gens.
+Warm-up 2×c1 + 1×c6 before measuring (both engines JIT lazily per request shape).
 
 | Metric | NVFP4 (Reddie+Spark4) | EXL3 (Bluey+Asusi) | winner |
 |--------|-----------------------|--------------------|--------|
-| single-stream tok/s (median of 3) | TBD — lane rebooting | **60.4** (57.7 on run 1) | |
-| aggregate tok/s @ c4 | TBD | **140.4** (140.7 on run 1) | |
-| prefill tok/s (~1.5K-token prompt) | TBD | **3,233** warm (cold-JIT first prefill: 136) | |
-| TTFT / prefill wall (s) | TBD | **0.48** | |
+| c1 single-stream tok/s — median (min / max), n=5 | 35.9 (27.6 / 39.0) | **61.1** (60.9 / 61.5) | EXL3 1.7× |
+| c6 aggregate tok/s — median (min / max), n=3 | 66.2 (64.3 / 83.2) | **122.0** (120.6 / 123.8) | EXL3 1.8× |
+| c6 per-stream tok/s — median | 17.6 | **34.9** | EXL3 2.0× |
+| prefill tok/s (~1.5K-token prompt) — median, n=3 | 564 | **3,233** | EXL3 5.7× |
+| TTFT ≈ prefill wall (s) — median | 2.88 | **0.50** | EXL3 |
+| run-to-run spread on c1 | ±16% | **±0.5%** | EXL3 |
 
-Two EXL3 runs ~10 min apart agree within 5% → stable. **Do not bench a cold lane:** the very first
-completion after boot was ~30 tok/s single-stream (cold trellis JIT + thinking on) and the first long
-prefill was 136 tok/s; both settle after one warm request.
+Earlier same-day c4 runs (before isolation): EXL3 60.4 / 140.4 → 59.9 / 152.2; NVFP4 33.8 / 28.5 → 36.2 / 55.5.
+
+**Caveats.** NVFP4 was still emitting `TileLang/Triton JIT compilation during inference` warnings during
+and after the bench — it compiles lazily per request shape, so its figures may sit below fully-warm; its
+own repo quotes 46.9 tok/s single (code, warm) and 47.7 c6 aggregate. Even against those, EXL3 is +30% on
+c1 and ~2.5× on c6 aggregate. NVFP4's worker loaded its weights over NFS here (Spark4 had no local copy of
+the RedHatAI base) — that lengthens boot (~40 min first boot), not decode. **Never bench a cold lane:**
+EXL3's first-ever completion was ~30 tok/s and its first long prefill 136 tok/s; both settle after one
+warm request. NVFP4's cold-first-request cost was 5.2 s → 3.3 s within three calls.
 
 ## Quality (the point of EXL3)
 Same prompt to both lanes, thinking OFF, temp 0. Probe 1 (2026-09-01):

@@ -1,0 +1,55 @@
+# Part 1: Top K Frequent Elements
+
+```python
+import heapq
+from collections import Counter
+
+def top_k_frequent(nums, k):
+    """
+    Return the k most frequent elements in nums.
+    Time: O(n log k), Space: O(n) for the counter.
+    """
+    if k <= 0 or not nums:
+        return []
+
+    counts = Counter(nums)          # O(n)
+    # Min-heap of size k: (frequency, element)
+    heap = []
+
+    for num, freq in counts.items():    # O(m) distinct elements, m <= n
+        heapq.heappush(heap, (freq, num))
+        if len(heap) > k:
+            heapq.heappop(heap)         # evict least frequent
+
+    # Extract in order of decreasing frequency
+    result = []
+    while heap:
+        freq, num = heapq.heappop(heap)
+        result.append(num)
+    result.reverse()
+    return result
+```
+
+**Why O(n log k):** Counting frequencies is O(n), and we then process the m distinct elements (m ≤ n) with a heap capped at size k, so each push/pop costs O(log k), giving O(n log k) total. The final extraction of k elements is O(k log k), which is dominated by O(n log k) since k ≤ n. This beats the naive approach of sorting all frequencies, which would be O(n log n).
+
+**Edge case handled:** If `k` is larger than the number of distinct elements, the function simply returns all distinct elements (the heap never exceeds the number of distinct items), and if `k <= 0` or `nums` is empty, it returns an empty list.
+
+---
+
+# Part 2: Bat and Ball
+
+Let the ball cost **b** dollars.
+
+- Ball: b
+- Bat: b + 1.00
+- Total: b + (b + 1.00) = 1.10
+
+**Solve:**
+
+$$2b + 1.00 = 1.10$$
+$$2b = 0.10$$
+$$b = 0.05$$
+
+**Check:** Ball = $0.05, Bat = $1.05, Total = $1.10 ✓ (Bat − Ball = $1.00 ✓)
+
+ANSWER: $0.05
