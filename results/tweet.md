@@ -30,3 +30,23 @@ Details: [link]
 ## Reply (thread)
 
 Both recipes are public: the NVFP4 2-Spark launcher (github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-DFlash2-2x-DGX-Spark) and the EXL3 kit from Reederey87 with brandonmusic's tr3-4bpw weights and turboderp's exllamav3 built for sm_121a. Credits in the article.
+
+## Opening post (thread starter, with results/card_nvfp4_vs_exl3.png)
+
+Everyone kept saying EXL3 beats NVFP4. So we ran both on the same model, the same DGX Sparks, at the same minute.
+
+GLM-5.3-Flash, two 4-bit quants, two 2-node TP2 lanes, c1 to c6, nothing else touching either lane.
+
+NVFP4 decodes faster: 64.0 vs 61.5 tok/s single stream, +14 to 30% per stream under load.
+
+EXL3 gets you the first token 4.5x sooner at c6 (1.0 s vs 4.6 s), prefills 2.9x faster, holds 1M context and 4.7x the KV pool on the same two boxes, and boots in 13 min instead of 23.
+
+Quality: a tie. 12-item reasoning battery, 11/12 vs 11/12 thinking off, 12/12 vs 12/12 thinking on.
+
+Our first run said EXL3 won everything. Two Sparks were clock-capped at ~700 MHz after a reboot. We caught it, restarted, ran it all again. These are the second-run numbers.
+
+Full write-up, method, isolation proof and the reasoning traces side by side in the thread.
+
+Reply 1: article link (via Hootsuite). Reply 2: both recipes are public (NVFP4 launcher repo + the EXL3 kit: Reederey87, brandonmusic tr3-4bpw, turboderp exllamav3 for sm_121a). Credits in the article.
+
+Cards: results/card_nvfp4_vs_exl3.png (icons, pick) · results/card_nvfp4_vs_exl3_alt.png (plain). gpt-image-2, numbers verified against results/*.json.
