@@ -19,8 +19,32 @@ BOOT = json.load(open("results/boot.json")) if os.path.exists("results/boot.json
 def boot(l):
     b = BOOT.get(l, {}); return (f"{b['min']} min ({b['note']})" if b.get("min") else "—")
 e1, n1, e6, n6 = er[0], nr[0], er[-1], nr[-1]
+# warm prefill/TTFT from the dedicated measurement (median of the last 3 of N long prompts) overrides the sweep's
+# single c1 sample, which is the FIRST long prefill after boot and therefore cold-JIT on a fresh lane.
+def pf(l, row):
+    p = f"results/prefill_{l}.json"
+    if os.path.exists(p):
+        d = json.load(open(p)); row["prefill_tok_s"] = d["warm_prefill_tok_s"]; row["ttft_med_s"] = d["warm_ttft_s"]
+        row["prefill_first"] = (d["first_prefill_tok_s"], d["first_ttft_s"])
+pf("exl3", e1); pf("nvfp4", n1)
 pe = max(r["agg_tok_s"] for r in er); pe_c = [r["c"] for r in er if r["agg_tok_s"] == pe][0]
 pn = max(r["agg_tok_s"] for r in nr); pn_c = [r["c"] for r in nr if r["agg_tok_s"] == pn][0]
+def lead(an, a, bn, b, higher=True, unit=""):
+    if a == b: return f"{an} {a}{unit} = {bn} {b}{unit} (tie)"
+    w = an if ((a > b) == higher) else bn
+    hi, lo = max(a, b), min(a, b)
+    return (f"{an} {a}{unit} vs {bn} {b}{unit} ({w} +{(hi-lo)/lo*100:.0f}%)" if higher
+            else f"{an} {a}{unit} vs {bn} {b}{unit} ({w} lower by {(hi-lo)/hi*100:.0f}%)")
+c1_txt = lead("NVFP4", n1["agg_tok_s"], "EXL3", e1["agg_tok_s"], True, " tok/s")
+pk_txt = lead("NVFP4", pn, "EXL3", pe, True, " tok/s") + f" (peaks at c{pn_c} / c{pe_c})"
+c6ps_txt = lead("NVFP4", n6["per_stream_tok_s"], "EXL3", e6["per_stream_tok_s"], True, " tok/s")
+pf_txt = lead("NVFP4", n1["prefill_tok_s"], "EXL3", e1["prefill_tok_s"], True, " tok/s")
+tt_txt = lead("NVFP4", n1["ttft_med_s"], "EXL3", e1["ttft_med_s"], False, " s")
+w2w_txt = lead("NVFP4", n6["w2w_med_s"], "EXL3", e6["w2w_med_s"], False, " s")
+c1_lead = "NVFP4" if n1["agg_tok_s"] > e1["agg_tok_s"] else ("EXL3" if e1["agg_tok_s"] > n1["agg_tok_s"] else "tie")
+pk_lead = "NVFP4" if pn > pe else ("EXL3" if pe > pn else "tie")
+pf_note = (" (warm, median of last 3 of 6 sequential 1.5K prompts; first-after-boot cold sample: EXL3 "
+           f"{e1.get('prefill_first', ('—','—'))[0]} tok/s / NVFP4 {n1.get('prefill_first', ('—','—'))[0]} tok/s)") if "prefill_first" in e1 else ""
 r = lambda a, b, d=1: f"{a/b:.{d}f}×"
 b64 = lambda p: "data:image/png;base64," + base64.b64encode(open(p, "rb").read()).decode()
 spread = lambda d: f"{d['c1_min']}–{d['c1_max']}" if d else "—"
@@ -28,22 +52,22 @@ pct = lambda d: f"±{(d['c1_max']-d['c1_min'])/2/d['c1_med']*100:.1f}%" if d els
 ts = E.get("ts", "")
 
 sweep_rows = "".join(f"<tr><td>c{e['c']}</td><td>{n['agg_tok_s']}</td><td>{n['per_stream_tok_s']}</td><td>{n['w2w_med_s']} s</td><td>{n['ttft_med_s']} s</td>"
-                     f"<td><b>{e['agg_tok_s']}</b></td><td><b>{e['per_stream_tok_s']}</b></td><td><b>{e['w2w_med_s']} s</b></td><td><b>{e['ttft_med_s']} s</b></td></tr>" for e, n in zip(er, nr))
+                     f"<td>{e['agg_tok_s']}</td><td>{e['per_stream_tok_s']}</td><td>{e['w2w_med_s']} s</td><td>{e['ttft_med_s']} s</td></tr>" for e, n in zip(er, nr))
 md_rows = "\n".join(f"| {e['c']} | {n['agg_tok_s']} | {n['per_stream_tok_s']} | {n['w2w_med_s']} s | {n['ttft_med_s']} s | **{e['agg_tok_s']}** | **{e['per_stream_tok_s']}** | **{e['w2w_med_s']} s** | **{e['ttft_med_s']} s** |" for e, n in zip(er, nr))
 
 summary = f"""## Headline (isolated, both lanes benched simultaneously, {ts})
-| | NVFP4 (Reddie + Spark4) | EXL3 (Bluey + Asusi) | ratio |
+| | NVFP4 (Reddie + Spark4) | EXL3 (Bluey + Asusi) | EXL3 ÷ NVFP4 |
 |---|---|---|---|
-| c1 single-stream tok/s | {n1['agg_tok_s']} | **{e1['agg_tok_s']}** | {r(e1['agg_tok_s'], n1['agg_tok_s'])} |
-| peak aggregate tok/s (at c) | {pn} (c{pn_c}) | **{pe}** (c{pe_c}) | {r(pe, pn)} |
-| c6 aggregate tok/s | {n6['agg_tok_s']} | **{e6['agg_tok_s']}** | {r(e6['agg_tok_s'], n6['agg_tok_s'])} |
-| c6 per-stream tok/s | {n6['per_stream_tok_s']} | **{e6['per_stream_tok_s']}** | {r(e6['per_stream_tok_s'], n6['per_stream_tok_s'])} |
-| prefill tok/s (~1.5K prompt) | {n1['prefill_tok_s']} | **{e1['prefill_tok_s']}** | {r(e1['prefill_tok_s'], n1['prefill_tok_s'])} |
-| TTFT c1 / c6 | {n1['ttft_med_s']} s / {n6['ttft_med_s']} s | **{e1['ttft_med_s']} s / {e6['ttft_med_s']} s** | {r(n1['ttft_med_s'], e1['ttft_med_s'])} / {r(n6['ttft_med_s'], e6['ttft_med_s'])} lower |
-| wall-to-wall c1 / c6 (300-tok answer) | {n1['w2w_med_s']} s / {n6['w2w_med_s']} s | **{e1['w2w_med_s']} s / {e6['w2w_med_s']} s** | {r(n1['w2w_med_s'], e1['w2w_med_s'])} / {r(n6['w2w_med_s'], e6['w2w_med_s'])} lower |
+| c1 single-stream tok/s | {n1['agg_tok_s']} | {e1['agg_tok_s']} | {r(e1['agg_tok_s'], n1['agg_tok_s'])} |
+| peak aggregate tok/s (at c) | {pn} (c{pn_c}) | {pe} (c{pe_c}) | {r(pe, pn)} |
+| c6 aggregate tok/s | {n6['agg_tok_s']} | {e6['agg_tok_s']} | {r(e6['agg_tok_s'], n6['agg_tok_s'])} |
+| c6 per-stream tok/s | {n6['per_stream_tok_s']} | {e6['per_stream_tok_s']} | {r(e6['per_stream_tok_s'], n6['per_stream_tok_s'])} |
+| prefill tok/s (~1.5K prompt){pf_note} | {n1['prefill_tok_s']} | {e1['prefill_tok_s']} | {r(e1['prefill_tok_s'], n1['prefill_tok_s'])} |
+| TTFT c1 / c6 | {n1['ttft_med_s']} s / {n6['ttft_med_s']} s | {e1['ttft_med_s']} s / {e6['ttft_med_s']} s | {r(n1['ttft_med_s'], e1['ttft_med_s'])} / {r(n6['ttft_med_s'], e6['ttft_med_s'])} lower |
+| wall-to-wall c1 / c6 (300-tok answer) | {n1['w2w_med_s']} s / {n6['w2w_med_s']} s | {e1['w2w_med_s']} s / {e6['w2w_med_s']} s | {r(n1['w2w_med_s'], e1['w2w_med_s'])} / {r(n6['w2w_med_s'], e6['w2w_med_s'])} lower |
 | c1 spread (detailed, n=5) | {spread(dn)} ({pct(dn)}) | {spread(de)} ({pct(de)}) | |
-| max context | {CTX['nvfp4']:,} | **{CTX['exl3']:,}** | {r(CTX['exl3'], CTX['nvfp4'], 0)} |
-| KV pool (tokens) | {KV['nvfp4']:,} | **{KV['exl3']:,}** | {r(KV['exl3'], KV['nvfp4'])} |
+| max context | {CTX['nvfp4']:,} | {CTX['exl3']:,} | {r(CTX['exl3'], CTX['nvfp4'], 0)} |
+| KV pool (tokens) | {KV['nvfp4']:,} | {KV['exl3']:,} | {r(KV['exl3'], KV['nvfp4'])} |
 | quality probe | {qn} | {qe} | {'tie' if qe == qn else 'differs'} |
 | boot: launch → /health 200 | {boot('nvfp4')} | {boot('exl3')} | |
 
@@ -91,24 +115,24 @@ a{{color:var(--ink);text-decoration-color:var(--rule);text-underline-offset:3px}
 <p class="sub">The same 320B MoE, GLM-5.3-Flash, in two 4-bit quantizations, on two independent 2-node DGX Spark pairs, benched at the same time in the same state, isolated from every other consumer. Full c1–c6 sweep: throughput, per-stream decode, time to first token, wall-to-wall latency, prefill, context, KV pool.</p>
 <div class="meta"><span>4× DGX Spark GB10 · 128 GB UMA</span><span>CX7 RoCE rail 0 · TP=2 per lane</span><span>vLLM · DFlash2 k=7 · fp8 KV</span><span>non-stream · temp 0 · thinking off</span><span>@tonyd2wild</span></div>
 <div class="stats">
-<div class="stat"><div class="n">{r(e1['agg_tok_s'], n1['agg_tok_s'])}</div><div class="l">single-stream decode ({e1['agg_tok_s']} vs {n1['agg_tok_s']} tok/s)</div></div>
-<div class="stat"><div class="n">{r(e1['prefill_tok_s'], n1['prefill_tok_s'])}</div><div class="l">prefill ({e1['prefill_tok_s']:,} vs {n1['prefill_tok_s']:,} tok/s) · TTFT {e1['ttft_med_s']} s vs {n1['ttft_med_s']} s</div></div>
-<div class="stat"><div class="n">{r(KV['exl3'], KV['nvfp4'])}</div><div class="l">the KV pool ({KV['exl3']:,} vs {KV['nvfp4']:,} tokens) · 1M vs 256K context</div></div>
+<div class="stat"><div class="n">{n1['agg_tok_s']} <span style="color:var(--muted)">/</span> {e1['agg_tok_s']}</div><div class="l">c1 single-stream tok/s, NVFP4 / EXL3 — {c1_lead if c1_lead!='tie' else 'tie'}{'' if c1_lead=='tie' else ' leads'}</div></div>
+<div class="stat"><div class="n">{pn} <span style="color:var(--muted)">/</span> {pe}</div><div class="l">peak aggregate tok/s, NVFP4 (c{pn_c}) / EXL3 (c{pe_c}) — {pk_lead if pk_lead!='tie' else 'tie'}{'' if pk_lead=='tie' else ' leads'}</div></div>
+<div class="stat"><div class="n">{r(KV['exl3'], KV['nvfp4'])}</div><div class="l">EXL3's KV pool ({KV['exl3']:,} vs {KV['nvfp4']:,} tokens) · 1M vs 256K context</div></div>
 </div>
-<p class="callout"><b>Result.</b> On identical hardware in the same state — all four nodes restarted together and verified at 2,411 MHz under load (Bluey ~2,177 under its clock-cap service) — EXL3 / TR3 4bpw delivered {r(e1['agg_tok_s'], n1['agg_tok_s'])} the single-stream decode, {r(pe, pn)} the peak aggregate ({pe} at c{pe_c} vs {pn} at c{pn_c}), {r(e1['prefill_tok_s'], n1['prefill_tok_s'])} the prefill, a {e1['ttft_med_s']} s time to first token against {n1['ttft_med_s']} s, four times the context with {r(KV['exl3'], KV['nvfp4'])} the KV pool, and {'the same answer' if qe == qn else 'a different answer'} on the quality probe.</p>
+<p class="callout"><b>Result, same state.</b> All four nodes restarted together and verified at ~2,170–2,190 MHz under decode load. Single-stream decode: {c1_txt}. Peak aggregate: {pk_txt}. Per-stream at c6: {c6ps_txt}. Warm prefill: {pf_txt}; TTFT: {tt_txt}. Wall-to-wall at c6: {w2w_txt}. EXL3 serves 4× the context with {r(KV['exl3'], KV['nvfp4'])} the KV pool on the same two boxes; boot to serve was EXL3 {boot('exl3')} vs NVFP4 {boot('nvfp4')}; the quality probe was {'a tie' if qe == qn else 'not a tie'}. An earlier run of this comparison that showed EXL3 ahead on every line was thrown out: NVFP4's nodes were clock-capped after a reboot.</p>
 
 <h2>The headline table</h2>
-<div class="tw"><table><thead><tr><th></th><th>NVFP4 · Reddie + Spark4</th><th>EXL3 · Bluey + Asusi</th><th>ratio</th></tr></thead><tbody>
-<tr><td>c1 single-stream, tok/s (3 rounds)</td><td>{n1['agg_tok_s']}</td><td><b>{e1['agg_tok_s']}</b></td><td><b>{r(e1['agg_tok_s'], n1['agg_tok_s'])}</b></td></tr>
-<tr><td>c1 spread, detailed run (n=5)</td><td>{spread(dn)} ({pct(dn)})</td><td><b>{spread(de)} ({pct(de)})</b></td><td></td></tr>
-<tr><td>peak aggregate, tok/s</td><td>{pn} (c{pn_c})</td><td><b>{pe} (c{pe_c})</b></td><td><b>{r(pe, pn)}</b></td></tr>
-<tr><td>c6 aggregate, tok/s</td><td>{n6['agg_tok_s']}</td><td><b>{e6['agg_tok_s']}</b></td><td><b>{r(e6['agg_tok_s'], n6['agg_tok_s'])}</b></td></tr>
-<tr><td>c6 per-stream, tok/s</td><td>{n6['per_stream_tok_s']}</td><td><b>{e6['per_stream_tok_s']}</b></td><td><b>{r(e6['per_stream_tok_s'], n6['per_stream_tok_s'])}</b></td></tr>
-<tr><td>prefill, tok/s (~1.5K-token prompt)</td><td>{n1['prefill_tok_s']:,}</td><td><b>{e1['prefill_tok_s']:,}</b></td><td><b>{r(e1['prefill_tok_s'], n1['prefill_tok_s'])}</b></td></tr>
-<tr><td>time to first token at c1 / c6</td><td>{n1['ttft_med_s']} s / {n6['ttft_med_s']} s</td><td><b>{e1['ttft_med_s']} s / {e6['ttft_med_s']} s</b></td><td><b>{r(n1['ttft_med_s'], e1['ttft_med_s'])} / {r(n6['ttft_med_s'], e6['ttft_med_s'])} lower</b></td></tr>
-<tr><td>wall-to-wall, 300-token answer, c1 / c6</td><td>{n1['w2w_med_s']} s / {n6['w2w_med_s']} s</td><td><b>{e1['w2w_med_s']} s / {e6['w2w_med_s']} s</b></td><td><b>{r(n1['w2w_med_s'], e1['w2w_med_s'])} / {r(n6['w2w_med_s'], e6['w2w_med_s'])} lower</b></td></tr>
-<tr><td>max context that booted</td><td>{CTX['nvfp4']:,}</td><td><b>{CTX['exl3']:,}</b></td><td><b>{r(CTX['exl3'], CTX['nvfp4'], 0)}</b></td></tr>
-<tr><td>KV pool (engine startup line)</td><td>{KV['nvfp4']:,} tokens</td><td><b>{KV['exl3']:,} tokens</b></td><td><b>{r(KV['exl3'], KV['nvfp4'])}</b></td></tr>
+<div class="tw"><table><thead><tr><th></th><th>NVFP4 · Reddie + Spark4</th><th>EXL3 · Bluey + Asusi</th><th>EXL3 ÷ NVFP4</th></tr></thead><tbody>
+<tr><td>c1 single-stream, tok/s (3 rounds)</td><td>{n1['agg_tok_s']}</td><td>{e1['agg_tok_s']}</td><td>{r(e1['agg_tok_s'], n1['agg_tok_s'])}</td></tr>
+<tr><td>c1 spread, detailed run (n=5)</td><td>{spread(dn)} ({pct(dn)})</td><td>{spread(de)} ({pct(de)})</td><td></td></tr>
+<tr><td>peak aggregate, tok/s</td><td>{pn} (c{pn_c})</td><td>{pe} (c{pe_c})</td><td>{r(pe, pn)}</td></tr>
+<tr><td>c6 aggregate, tok/s</td><td>{n6['agg_tok_s']}</td><td>{e6['agg_tok_s']}</td><td>{r(e6['agg_tok_s'], n6['agg_tok_s'])}</td></tr>
+<tr><td>c6 per-stream, tok/s</td><td>{n6['per_stream_tok_s']}</td><td>{e6['per_stream_tok_s']}</td><td>{r(e6['per_stream_tok_s'], n6['per_stream_tok_s'])}</td></tr>
+<tr><td>prefill, tok/s (~1.5K-token prompt){pf_note}</td><td>{n1['prefill_tok_s']:,}</td><td>{e1['prefill_tok_s']:,}</td><td>{r(e1['prefill_tok_s'], n1['prefill_tok_s'])}</td></tr>
+<tr><td>time to first token at c1 / c6</td><td>{n1['ttft_med_s']} s / {n6['ttft_med_s']} s</td><td>{e1['ttft_med_s']} s / {e6['ttft_med_s']} s</td><td>{r(n1['ttft_med_s'], e1['ttft_med_s'])} / {r(n6['ttft_med_s'], e6['ttft_med_s'])} lower</td></tr>
+<tr><td>wall-to-wall, 300-token answer, c1 / c6</td><td>{n1['w2w_med_s']} s / {n6['w2w_med_s']} s</td><td>{e1['w2w_med_s']} s / {e6['w2w_med_s']} s</td><td>{r(n1['w2w_med_s'], e1['w2w_med_s'])} / {r(n6['w2w_med_s'], e6['w2w_med_s'])} lower</td></tr>
+<tr><td>max context that booted</td><td>{CTX['nvfp4']:,}</td><td>{CTX['exl3']:,}</td><td>{r(CTX['exl3'], CTX['nvfp4'], 0)}</td></tr>
+<tr><td>KV pool (engine startup line)</td><td>{KV['nvfp4']:,} tokens</td><td>{KV['exl3']:,} tokens</td><td>{r(KV['exl3'], KV['nvfp4'])}</td></tr>
 <tr><td>quality probe (code + reasoning trap)</td><td>{qn}</td><td>{qe}</td><td>{'tie' if qe == qn else 'differs'}</td></tr>
 <tr><td>boot: launch → /health 200</td><td>{boot('nvfp4')}</td><td>{boot('exl3')}</td><td></td></tr>
 </tbody></table></div>
@@ -141,7 +165,7 @@ a{{color:var(--ink);text-decoration-color:var(--rule);text-underline-offset:3px}
 <p>Same prompt to both, thinking off, temperature 0: write <code>top_k_frequent(nums, k)</code> in O(n log k) with an explanation and an edge case, and solve the bat-and-ball trap ($1.10 total, the bat $1.00 more than the ball). EXL3: {qe}. NVFP4: {qn}. Published KLD figures put EXL3/TR3 4bpw near 0.025 (tying FP8) and NVFP4 near 0.060, so a quality gap is expected to exist; a single probe of this difficulty {'did not surface it' if qe == qn else 'surfaced a difference'}. Harder probes are the open items.</p>
 
 <h2>Discussion</h2>
-<p><b>Where the speed comes from.</b> The largest gap is prefill, {r(e1['prefill_tok_s'], n1['prefill_tok_s'])}. EXL3's fused trellis MoE kernels prefill a 1.5K prompt in {e1['ttft_med_s']} s; the NVFP4 marlin path took {n1['ttft_med_s']} s. For agents that is the number users feel: time to first token. Decode is {r(e1['agg_tok_s'], n1['agg_tok_s'])} faster at c1 and {r(e6['per_stream_tok_s'], n6['per_stream_tok_s'])} per stream at c6.</p>
+<p><b>Where the numbers land.</b> Single-stream decode: {c1_txt}. Peak aggregate: {pk_txt}; per-stream at c6: {c6ps_txt}. Warm prefill: {pf_txt}, TTFT {tt_txt}. Both engines JIT-compile the long-prompt path on first use, so the sweep's own c1 prefill sample is a cold number on a fresh boot; the figures above come from the dedicated warm measurement.</p>
 <p><b>Context and KV.</b> EXL3 serves {CTX['exl3']:,} tokens of context with a {KV['exl3']:,}-token KV pool on the same two boxes on which the NVFP4 recipe serves {CTX['nvfp4']:,} with a {KV['nvfp4']:,}-token pool. NVFP4 at TP2 cannot be launched at 1M: an adapted launcher with <code>--max-model-len 1048576</code> produced three worker reboots on <code>NVRM: NV_ERR_NO_MEMORY</code> and a 24-minute stall until the published 256K recipe was run verbatim.</p>
 <p><b>Boot and load time.</b> Measured on this same-state run from launch command to first <code>/health</code> 200: EXL3 {boot('exl3')}; NVFP4 {boot('nvfp4')}. NVFP4's worker reads its weights over NFS from the head on this cluster (no local copy of the base on Spark4); a local copy would put it closer to the recipe's ~15 min. Both lanes JIT-compile kernels on first boot; a wiped cache adds minutes to either.</p>
 <p><b>Memory.</b> Each lane holds ~91 GiB of weights per 121 GiB node; every failure we hit was a transient spike on top of that baseline. Drop caches on every node before every launch; <code>free -g</code> under-reports on GB10.</p>
@@ -200,11 +224,12 @@ report = f"""# NVFP4 vs EXL3 for GLM-5.3-Flash on DGX Spark
 
 ## TL;DR
 The same 320B MoE, GLM-5.3-Flash, in two 4-bit quantizations, on two independent 2-node DGX Spark pairs, benched
-**at the same time in the same state** (all four nodes restarted together, clocks verified under load), isolated from
-every other consumer. EXL3 / TR3 4bpw delivered {r(e1['agg_tok_s'], n1['agg_tok_s'])} the single-stream decode,
-{r(pe, pn)} the peak aggregate ({pe} at c{pe_c} vs {pn} at c{pn_c}), {r(e1['prefill_tok_s'], n1['prefill_tok_s'])} the prefill,
-{e1['ttft_med_s']} s to first token vs {n1['ttft_med_s']} s, 4× the context with {r(KV['exl3'], KV['nvfp4'])} the KV pool, and
-{'the same answer' if qe == qn else 'a different answer'} on the quality probe.
+**at the same time in the same state** (all four nodes restarted together, clocks verified at ~2,170–2,190 MHz under
+decode load), isolated from every other consumer. Single-stream decode: {c1_txt}. Peak aggregate: {pk_txt}.
+Per-stream at c6: {c6ps_txt}. Warm prefill: {pf_txt}; TTFT {tt_txt}. Wall-to-wall at c6: {w2w_txt}. EXL3 serves 4× the
+context with {r(KV['exl3'], KV['nvfp4'])} the KV pool; boot to serve EXL3 {boot('exl3')} vs NVFP4 {boot('nvfp4')}; quality
+probe {'tie' if qe == qn else 'differs'}. An earlier run showing EXL3 ahead on every line was discarded: NVFP4's nodes were
+clock-capped after a reboot (611–728 MHz); with clocks equal the picture is the one above.
 
 {summary}
 ## Hardware and topology
