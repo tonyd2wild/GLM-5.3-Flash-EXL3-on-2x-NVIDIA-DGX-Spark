@@ -53,10 +53,31 @@ first boot always wipes) → `./start.sh start` (worker `--headless` over SSH, t
    ~122 GiB free (a dead 182 GiB NVFP4-ablit copy from the retired GLM TP4 lane was squatting in
    `/var/tmp/models`). Cleared it → 303 GiB free. **Check worker free space >= model size before
    launch;** the kit only WARNs, it doesn't stop.
-3. **`~/.cache/vllm-glm53-flash/.config-shape` can be root-owned** (a prior container wrote it as
-   root), so the config-shape stamp write fails with `Permission denied` and the JIT-cache guard
-   can't record state → it re-attempts a wipe every start. Harmless on first boot; `chown` it back
-   to the run user to stop the churn.
+3. **`~/.cache/vllm-glm53-flash/` can be ROOT-OWNED — and it is NOT harmless.** A prior container
+   wrote it as root. First symptom is the config-shape stamp failing with `Permission denied`
+   (looks benign). The real bite: the launch then tries `mkdir ~/.cache/vllm-glm53-flash/tilelang`
+   as the run user, fails, and **exits with NO containers** — a dead launch that looks like a
+   silent no-op. **Fix on BOTH nodes before launching:**
+   `sudo chown -R $USER:$USER ~/.cache/vllm-glm53-flash && mkdir -p ~/.cache/vllm-glm53-flash/{tilelang,triton}`.
+4. **The kit binds the API to loopback only** — `start.sh` passes `--host 127.0.0.1` ("on purpose",
+   security). It serves fine on-box (`curl 127.0.0.1:8000` works) but the fabric, the tailnet, the
+   fleet, the coding monitor and any remote bench all get **connection refused**. On our private
+   tailnet fleet every endpoint is `0.0.0.0`, so: `sed -i 's/--host 127.0.0.1/--host 0.0.0.0/g' start.sh`
+   (two serve lines; the `http://127.0.0.1:${PORT}` health-check URLs are fine to leave). Needs a
+   relaunch. Verify from OFF-box: `curl http://<tailnet-ip>:8000/v1/models`.
+5. **It re-ships the image to the worker on EVERY launch.** `ensure_image()` compares an image key
+   that never matches for a locally-built image (head = `tag@sha256:…`, worker after
+   `docker save | ssh docker load` = RootFS layer list), so it always logs "will refresh worker"
+   and pushes the ~21 GB image again. Harmless, ~1–2 min per launch. Fix later: key on `.Id` for
+   local images, or skip when the worker already has the tag.
+6. **UMA page cache starves the memory gate after big file moves.** Right after the 164 GiB rsync
+   the worker showed **MemFree 1 GiB** (everything parked in page cache) and `prod-start` stalled at
+   its ≥90 GiB gate. `sync; echo 3 | sudo tee /proc/sys/vm/drop_caches` on both nodes → 117 GiB
+   free, gate passes on the next poll. Do this before every launch on these boxes.
+
+Boot timing observed: cold first boot ≈ 12 min to serve (weights ~5 min + trellis JIT); a warm
+relaunch is also ≈ 12 min (weight load dominates, JIT is cached). DFlash2 draft acceptance on the
+EXL3 lane ≈ 40% (mean acceptance length ~3.8).
 
 ## Coexistence with the NVFP4 lane
 NVFP4 GLM runs TP2 on **Reddie(.2 head)+Spark4(.4)**, master `192.168.192.2:29521`, serves
