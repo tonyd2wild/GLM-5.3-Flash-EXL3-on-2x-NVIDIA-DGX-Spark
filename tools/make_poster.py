@@ -8,6 +8,13 @@ def J(p, default=None): return json.load(open(p)) if os.path.exists(p) else defa
 E=J("results/sweep_exl3.json")["rows"]; N=J("results/sweep_nvfp4.json")["rows"]
 DE=J("results/detailed_exl3.json",{}); DN=J("results/detailed_nvfp4.json",{})
 PE=J("results/prefill_exl3.json",{}); PN=J("results/prefill_nvfp4.json",{}); BOOT=J("results/boot.json",{})
+TE=J("results/ttft_fresh_exl3.json",{}); TN=J("results/ttft_fresh_nvfp4.json",{})
+PLE=J("results/prefill_len_exl3.json",{}); PLN=J("results/prefill_len_nvfp4.json",{})
+C4E=J("results/categories_exl3_off_c4.json",{}); C4N=J("results/categories_nvfp4_off_c4.json",{})
+CS=J("results/categories_summary.json",{})
+for rows_,T in ((E,TE),(N,TN)):
+    m={r_["c"]:r_ for r_ in T.get("rows",[])}
+    for r_ in rows_: r_["ttft_repeat_s"]=r_["ttft_med_s"]; r_["ttft_med_s"]=m.get(r_["c"],r_)["ttft_med_s"]
 B={(l,m):J(f"results/quality_battery_{l}_{m}.json") for l in ("exl3","nvfp4") for m in ("off","on")}
 G="#1B1C1F"; P="#232428"; INK="#F2F2F0"; MUT="#9A9DA3"; RULE="#3A3C41"; WH="#F2F2F0"; GY="#8F9297"
 plt.rcParams.update({"font.family":"DejaVu Sans","text.color":INK,"axes.edgecolor":RULE,"axes.labelcolor":MUT,
@@ -15,8 +22,12 @@ plt.rcParams.update({"font.family":"DejaVu Sans","text.color":INK,"axes.edgecolo
 # ---------------- derived numbers ----------------
 c1e,c6e=E[0],E[5]; c1n,c6n=N[0],N[5]
 c1n_v=DN.get("c1_med",c1n["agg_tok_s"]); c1e_v=DE.get("c1_med",c1e["agg_tok_s"])          # detailed medians (n=5) when present
-pn=PN.get("warm_prefill_tok_s",c1n["prefill_tok_s"]); pe=PE.get("warm_prefill_tok_s",c1e["prefill_tok_s"])
-tn1=PN.get("warm_ttft_s",c1n["ttft_med_s"]); te1=PE.get("warm_ttft_s",c1e["ttft_med_s"])  # warm c1 TTFT
+pn=(TN["rows"][0]["prefill_tok_s"] if TN else c1n["prefill_tok_s"]); pe=(TE["rows"][0]["prefill_tok_s"] if TE else c1e["prefill_tok_s"])   # fresh-prompt prefill
+tn1=c1n["ttft_med_s"]; te1=c1e["ttft_med_s"]   # fresh-prompt c1 TTFT (rows overridden above)
+rn1=PN.get("warm_ttft_s",c1n.get("ttft_repeat_s",tn1)); re1=PE.get("warm_ttft_s",c1e.get("ttft_repeat_s",te1))   # identical prompt repeated = prefix cache replay
+pln=PLN["rows"][-1] if PLN else None; ple=PLE["rows"][-1] if PLE else None
+c4n=C4N.get("overall",{}); c4e=C4E.get("overall",{})
+q40=CS.get("overall",{}); jt=CS.get("judge_total",{})
 def spread(D):
     return f"±{(D['c1_max']-D['c1_min'])/2/D['c1_med']*100:.1f}%" if D.get("c1_med") else "—"
 per_gain=[(r_n["per_stream_tok_s"]-r_e["per_stream_tok_s"])/r_e["per_stream_tok_s"]*100 for r_n,r_e in zip(N[1:5],E[1:5])]
@@ -49,14 +60,16 @@ fig.text(0.5,0.975,"NVFP4  vs  EXL3",ha="center",va="center",fontsize=30,fontwei
 fig.text(0.5,0.958,"GLM-5.3-Flash on dual DGX Spark  ·  same model, two 4-bit quants, two 2-node lanes, benched at the same time",ha="center",fontsize=11,color=MUT)
 fig.text(0.5,0.945,"2026-09-01   ·   2× DGX Spark GB10 per lane   ·   CX7 RoCE rail 0   ·   TP=2 each   ·   isolated: relay parked, monitor paused, access logs = bench client only",ha="center",fontsize=8.5,color=MUT)
 # verdict (computed)
-ax=panel(fig,0.04,0.852,0.92,0.082)
-ax.text(0.03,0.84,"VERDICT",fontsize=11,fontweight="bold",color=MUT,va="center")
-ax.text(0.03,0.65,"Split decision: NVFP4 decodes faster, EXL3 answers first and holds 4× the context",fontsize=14.5,fontweight="bold",va="center")
-ax.text(0.03,0.44,f"NVFP4 wins decode: c1 {c1n_v:.1f} vs {c1e_v:.1f} tok/s ({edge(c1n_v,c1e_v)}), per-stream at c2–c5 (+{min(per_gain):.0f}–{max(per_gain):.0f}%), aggregate at {agg_wins_n} of 6 levels, wall-to-wall at c1–c5.",fontsize=9.3,va="center",color=INK)
-ax.text(0.03,0.27,f"EXL3 wins the first token: warm TTFT {te1:.2f} s vs {tn1:.2f} s at c1, {c6e['ttft_med_s']:.1f} s vs {c6n['ttft_med_s']:.1f} s at c6; prefill {edge(pn,pe)}; 4× context; 4.7× KV pool; boots in {boot('exl3')} vs {boot('nvfp4')}.",fontsize=9.3,va="center",color=INK)
-ax.text(0.03,0.10,f"Quality battery, 12 items, NVFP4 vs EXL3: thinking off {acc('nvfp4','off')} vs {acc('exl3','off')} (same miss), thinking on {acc('nvfp4','on')} vs {acc('exl3','on')}. On this battery the quant does not change how smart it is.",fontsize=9.3,va="center",color=INK)
+ax=panel(fig,0.04,0.838,0.92,0.096)
+ax.text(0.03,0.87,"VERDICT",fontsize=11,fontweight="bold",color=MUT,va="center")
+ax.text(0.03,0.72,"Split decision: NVFP4 is faster on fresh prompts. EXL3 wins cached context, mixed load and headroom.",fontsize=13.5,fontweight="bold",va="center")
+ax.text(0.03,0.56,f"NVFP4: decode c1 {c1n_v:.1f} vs {c1e_v:.1f} tok/s ({edge(c1n_v,c1e_v)}), per-stream +{min(per_gain):.0f}–{max(per_gain):.0f}% at c2–c5 · first token on fresh 1.6K prompts {tn1:.2f} vs {te1:.2f} s at c1, {c6n['ttft_med_s']:.1f} vs {c6e['ttft_med_s']:.1f} s at c6",fontsize=8.9,va="center",color=INK)
+ax.text(0.03,0.44,f"         · cold prefill on a fresh {pln['prompt_tokens']//1000 if pln else 211}K-token prompt {pln['cold_tok_s'] if pln else '—'} vs {ple['cold_tok_s'] if ple else '—'} tok/s · 5 of 5 coding tests with thinking off (EXL3 4 of 5, it loops into self-correction; thinking on fixes it).",fontsize=8.9,va="center",color=INK)
+ax.text(0.03,0.30,f"EXL3: prefix cache (same prompt again {re1:.2f} vs {rn1:.2f} s; a {ple['prompt_tokens']//1000 if ple else 211}K context replayed in {ple['warm_s'] if ple else '—'} vs {pln['warm_s'] if pln else '—'} s) · mixed load of 4 real prompts {c4e.get('agg_tok_s_med','—')} vs {c4n.get('agg_tok_s_med','—')} tok/s, first token {c4e.get('ttft_med_s','—')} vs {c4n.get('ttft_med_s','—')} s",fontsize=8.9,va="center",color=INK)
+ax.text(0.03,0.18,f"         · 4× context, 4.7× KV pool, boots in {boot('exl3')} vs {boot('nvfp4')} · best format compliance (96% vs 60%).",fontsize=8.9,va="center",color=INK)
+ax.text(0.03,0.05,f"Quality: tie. 40 real prompts in 8 categories, auto score NVFP4 {q40.get('nvfp4',{}).get('auto_score',0)*100:.0f}% vs EXL3 {q40.get('exl3',{}).get('auto_score',0)*100:.0f}%, blind judge {jt.get('nvfp4','—')} / {jt.get('exl3','—')} / {jt.get('tie','—')} ties · 12-item battery {acc('nvfp4','off')} vs {acc('exl3','off')} off, {acc('nvfp4','on')} vs {acc('exl3','on')} on.",fontsize=8.9,va="center",color=INK)
 # what we served
-ax=panel(fig,0.04,0.705,0.92,0.14,"What we served")
+ax=panel(fig,0.04,0.705,0.92,0.126,"What we served")
 grid(ax,[("Weights","RedHatAI/GLM-5.3-Flash-NVFP4","brandonmusic/GLM-5.3-Flash-tr3-4bpw"),
  ("Runtime","vLLM  ghcr.io/tonyd2wild/…:sm121-v11-dflash2","vLLM + exllamav3 built for sm_121a"),
  ("Context that booted","262,144","1,048,576"),("KV pool (tokens)","295,230","1,396,551"),
@@ -67,15 +80,18 @@ grid(ax,[("Weights","RedHatAI/GLM-5.3-Flash-NVFP4","brandonmusic/GLM-5.3-Flash-t
  cols_x=(0.03,0.36,0.68),top=0.82,fs=8.8,hdr=("","NVFP4  Reddie + Spark4","EXL3  Bluey + Asusi"))
 # speed table (computed edges)
 ax=panel(fig,0.04,0.545,0.92,0.15,"Speed · medians")
-ax.text(0.03,0.855,"non-stream · temp 0 · thinking off · ~300-token gens · sweep = 3 rounds per level, c1 = 5 rounds, prefill = warm median of 3",fontsize=7.5,color=MUT,va="center")
+ax.text(0.03,0.885,"non-stream · temp 0 · thinking off · decode = counting prompt, 3 rounds per level (c1: 5) · TTFT and prefill = fresh prompts, different text per request, 3 rounds",fontsize=7.3,color=MUT,va="center")
 grid(ax,[("c1 single-stream (n=5)",f"{c1n_v:.1f} tok/s",f"{c1e_v:.1f} tok/s",edge(c1n_v,c1e_v)),
  ("c6 aggregate",f"{c6n['agg_tok_s']:.1f} tok/s",f"{c6e['agg_tok_s']:.1f} tok/s",edge(c6n['agg_tok_s'],c6e['agg_tok_s'])),
  ("c6 per-stream",f"{c6n['per_stream_tok_s']:.1f} tok/s",f"{c6e['per_stream_tok_s']:.1f} tok/s",edge(c6n['per_stream_tok_s'],c6e['per_stream_tok_s'])),
- ("Prefill, ~1.6K prompt (warm)",f"{pn} tok/s",f"{pe} tok/s",edge(pn,pe)),
- ("TTFT at c1 (warm) / c6",f"{tn1:.2f}s / {c6n['ttft_med_s']:.2f}s",f"{te1:.2f}s / {c6e['ttft_med_s']:.2f}s",edge(c6n['ttft_med_s'],c6e['ttft_med_s'],higher=False)+" at c6"),
+ ("Prefill, fresh 1.6K prompt",f"{pn:,} tok/s",f"{pe:,} tok/s",edge(pn,pe)),
+ ("TTFT, fresh prompts, c1 / c6",f"{tn1:.2f}s / {c6n['ttft_med_s']:.2f}s",f"{te1:.2f}s / {c6e['ttft_med_s']:.2f}s",edge(c6n['ttft_med_s'],c6e['ttft_med_s'],higher=False)+" at c6"),
+ ("Same prompt repeated (prefix cache), c1",f"{rn1:.2f}s",f"{re1:.2f}s",edge(rn1,re1,higher=False)),
+ (f"Cold prefill, fresh {pln['prompt_tokens']//1000 if pln else 211}K prompt",f"{pln['cold_tok_s'] if pln else 0:,} tok/s",f"{ple['cold_tok_s'] if ple else 0:,} tok/s",edge(pln['cold_tok_s'],ple['cold_tok_s']) if (pln and ple) else "—"),
+ ("Mixed load c4, 4 real prompts: agg / TTFT",f"{c4n.get('agg_tok_s_med','—')} / {c4n.get('ttft_med_s','—')}s",f"{c4e.get('agg_tok_s_med','—')} / {c4e.get('ttft_med_s','—')}s",edge(c4n.get('agg_tok_s_med',1),c4e.get('agg_tok_s_med',1))),
  ("Wall-to-wall at c1 / c6",f"{c1n['w2w_med_s']:.1f}s / {c6n['w2w_med_s']:.1f}s",f"{c1e['w2w_med_s']:.1f}s / {c6e['w2w_med_s']:.1f}s",edge(c1n['w2w_med_s'],c1e['w2w_med_s'],higher=False)+" at c1"),
  ("Run-to-run spread (c1, n=5)",spread(DN),spread(DE),"both stable")],
- cols_x=(0.03,0.36,0.60,0.82),top=0.82,fs=9.5,hdr=("","NVFP4","EXL3","Edge"),bold_last=True)
+ cols_x=(0.03,0.36,0.60,0.82),top=0.79,fs=8.6,hdr=("","NVFP4","EXL3","Edge"),bold_last=True)
 # sweep charts
 cs=[r["c"] for r in E]
 def sweep_ax(rect,key,ylabel,title,fmt):
@@ -90,17 +106,17 @@ def sweep_ax(rect,key,ylabel,title,fmt):
     ax.legend(frameon=False,fontsize=8,loc=("upper right" if "Per-stream" in title else "upper left"),labelcolor=INK)
     return ax
 sweep_ax([0.08,0.405,0.40,0.115],"agg_tok_s","tokens / s","Aggregate throughput vs concurrency",lambda v:f"{v:.0f}")
-sweep_ax([0.56,0.405,0.40,0.115],"ttft_med_s","seconds","Time to first token vs concurrency",lambda v:f"{v:.1f}s")
+sweep_ax([0.56,0.405,0.40,0.115],"ttft_med_s","seconds","Time to first token vs concurrency (fresh 1.6K prompts)",lambda v:f"{v:.1f}s")
 sweep_ax([0.08,0.262,0.40,0.115],"per_stream_tok_s","tokens / s","Per-stream decode vs concurrency",lambda v:f"{v:.0f}")
 sweep_ax([0.56,0.262,0.40,0.115],"w2w_med_s","seconds","Wall-to-wall, 300-token answer (median)",lambda v:f"{v:.1f}s")
 # what each one wins (computed) + pins
 ax=panel(fig,0.04,0.165,0.92,0.075,"What each one wins")
-tiles=[("NVFP4 · decode",f"c1 {c1n_v:.1f} vs {c1e_v:.1f} tok/s"),("NVFP4 · per-stream",f"+{min(per_gain):.0f}–{max(per_gain):.0f}% at c2–c5"),
- ("EXL3 · first token",f"{c6e['ttft_med_s']:.1f} s vs {c6n['ttft_med_s']:.1f} s at c6"),("EXL3 · prefill",f"{pe:,} vs {pn:,} tok/s warm"),
- ("EXL3 · context + KV","1 M / 1.40 M vs 256 K / 295 K"),("EXL3 · boot",f"{boot('exl3')} vs {boot('nvfp4')} to /health")]
+tiles=[("NVFP4 · decode",f"c1 {c1n_v:.1f} vs {c1e_v:.1f} tok/s"),("NVFP4 · first token",f"{tn1:.1f} vs {te1:.1f} s, fresh 1.6K"),
+ ("NVFP4 · 211K prefill",f"{pln['cold_tok_s'] if pln else '—'} vs {ple['cold_tok_s'] if ple else '—'} tok/s at {pln['prompt_tokens']//1000 if pln else 211}K"),("EXL3 · cache",f"{ple['warm_s'] if ple else '—'} vs {pln['warm_s'] if pln else '—'} s replay of {ple['prompt_tokens']//1000 if ple else 211}K"),
+ ("EXL3 · mixed load",f"{c4e.get('agg_tok_s_med','—')} vs {c4n.get('agg_tok_s_med','—')} tok/s, 4 in flight"),("EXL3 · headroom",f"1 M ctx · 4.7× KV · {boot('exl3')} boot")]
 for i,(h,t) in enumerate(tiles):
     x=0.03+i*0.16
-    ax.text(x,0.60,h,fontsize=10.2,fontweight="bold",va="center"); ax.text(x,0.30,t,fontsize=7.6,color=MUT,va="center")
+    ax.text(x,0.60,h,fontsize=9.6,fontweight="bold",va="center"); ax.text(x,0.30,t,fontsize=7.4,color=MUT,va="center")
 ax=panel(fig,0.04,0.075,0.92,0.082,"Pins that matter")
 for i,t in enumerate(["NVFP4: run the published 2-Spark recipe verbatim — 256 K context, worker first, head 25 s later · vm.swappiness=0 resets on reboot · poll /health, never /v1/models",
  "EXL3 kit: count_shards needs find -L on an HF cache · chown ~/.cache/vllm-glm53-flash on both nodes · --host 0.0.0.0 (it ships loopback) · worker needs the full 164 GiB",
@@ -115,7 +131,7 @@ fig.text(0.04,0.005,"Credits: Reederey87 · MiaAI-Lab · brandonmusic (EXL3 quan
 fig.savefig("results/poster_nvfp4_vs_exl3.png",dpi=150); print("poster -> results/poster_nvfp4_vs_exl3.png")
 # ---------------- standalone charts (16:9, for the article/tweet) ----------------
 for key,ylabel,title,fmt,fn in [("agg_tok_s","tokens / s","Aggregate throughput vs concurrency — GLM-5.3-Flash, 2× DGX Spark per lane",lambda v:f"{v:.0f}","chart_agg"),
-    ("ttft_med_s","seconds","Time to first token vs concurrency",lambda v:f"{v:.1f}s","chart_ttft"),
+    ("ttft_med_s","seconds","Time to first token vs concurrency — fresh 1.6K-token prompts, no prefix-cache reuse",lambda v:f"{v:.1f}s","chart_ttft"),
     ("w2w_med_s","seconds","Wall-to-wall for a 300-token answer (median)",lambda v:f"{v:.1f}s","chart_w2w")]:
     f2=plt.figure(figsize=(12,6.75),dpi=150); ax=f2.add_axes([0.08,0.13,0.86,0.75]); ax.set_facecolor(P)
     for rows,col,lab in ((N,GY,"NVFP4  Reddie+Spark4"),(E,WH,"EXL3  Bluey+Asusi")):

@@ -1,0 +1,44 @@
+{
+ "lane": "exl3",
+ "model": "GLM-5.3-Flash-EXL3",
+ "tokens": 1600,
+ "rounds": 3,
+ "jit_first_s": [
+  2.35,
+  2.31
+ ],
+ "rows": [
+  {
+   "c": 1,
+   "ttft_med_s": 2.31,
+   "prompt_tokens": 1582,
+   "prefill_tok_s": 684
+  },
+  {
+   "c": 2,
+   "ttft_med_s": 4.13,
+   "prompt_tokens": 1586
+  },
+  {
+   "c": 3,
+   "ttft_med_s": 5.85,
+   "prompt_tokens": 1572
+  },
+  {
+   "c": 4,
+   "ttft_med_s": 7.47,
+   "prompt_tokens": 1583
+  },
+  {
+   "c": 5,
+   "ttft_med_s": 8.96,
+   "prompt_tokens": 1569
+  },
+  {
+   "c": 6,
+   "ttft_med_s": 9.82,
+   "prompt_tokens": 1588
+  }
+ ],
+ "ts": "2026-09-01 18:45"
+}

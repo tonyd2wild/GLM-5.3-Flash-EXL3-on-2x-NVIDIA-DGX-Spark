@@ -1,0 +1,80 @@
+{
+ "lane": "exl3",
+ "model": "GLM-5.3-Flash-EXL3",
+ "reps": 2,
+ "rows": [
+  {
+   "target": 8000,
+   "prompt_tokens": 6899,
+   "cold_tok_s": 775,
+   "cold_s": 8.9,
+   "warm_tok_s": 17252,
+   "warm_s": 0.4,
+   "all_tok_s": [
+    775,
+    17252
+   ]
+  },
+  {
+   "target": 16000,
+   "prompt_tokens": 13772,
+   "cold_tok_s": 1614,
+   "cold_s": 8.5,
+   "warm_tok_s": 35919,
+   "warm_s": 0.4,
+   "all_tok_s": [
+    1614,
+    35919
+   ]
+  },
+  {
+   "target": 32000,
+   "prompt_tokens": 27518,
+   "cold_tok_s": 1711,
+   "cold_s": 16.1,
+   "warm_tok_s": 55387,
+   "warm_s": 0.5,
+   "all_tok_s": [
+    1711,
+    55387
+   ]
+  },
+  {
+   "target": 64000,
+   "prompt_tokens": 55097,
+   "cold_tok_s": 1660,
+   "cold_s": 33.2,
+   "warm_tok_s": 101681,
+   "warm_s": 0.5,
+   "all_tok_s": [
+    1660,
+    101681
+   ]
+  },
+  {
+   "target": 128000,
+   "prompt_tokens": 110255,
+   "cold_tok_s": 1780,
+   "cold_s": 61.9,
+   "warm_tok_s": 176340,
+   "warm_s": 0.6,
+   "all_tok_s": [
+    1780,
+    176340
+   ]
+  },
+  {
+   "target": 245000,
+   "prompt_tokens": 211001,
+   "cold_tok_s": 1752,
+   "cold_s": 120.4,
+   "warm_tok_s": 261333,
+   "warm_s": 0.8,
+   "all_tok_s": [
+    1752,
+    261333
+   ]
+  }
+ ],
+ "ts": "2026-09-01 18:39"
+}

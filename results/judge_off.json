@@ -1,0 +1,313 @@
+{
+ "judge": "qwen3.8-27b",
+ "lanes": [
+  "nvfp4",
+  "exl3"
+ ],
+ "thinking": "off",
+ "tally": {
+  "coding": {
+   "nvfp4": 3,
+   "exl3": 1,
+   "tie": 1
+  },
+  "html": {
+   "nvfp4": 0,
+   "exl3": 1,
+   "tie": 4
+  },
+  "prose": {
+   "nvfp4": 1,
+   "exl3": 2,
+   "tie": 2
+  },
+  "narrative": {
+   "nvfp4": 3,
+   "exl3": 2,
+   "tie": 0
+  },
+  "summary": {
+   "nvfp4": 1,
+   "exl3": 1,
+   "tie": 3
+  },
+  "format": {
+   "nvfp4": 1,
+   "exl3": 1,
+   "tie": 3
+  }
+ },
+ "items": [
+  {
+   "id": "code1",
+   "category": "coding",
+   "order1": "B",
+   "order2": "A",
+   "verdict": "exl3",
+   "reason1": "Response B is slightly cleaner and more robust because it explicitly converts the first interval to a list, ensuring it doesn't mutate the original input data if the input contained tuples, whereas Re",
+   "reason2": "Response A is slightly cleaner and more readable, using `max()` for clarity, while both are functionally correct and handle edge cases well."
+  },
+  {
+   "id": "code2",
+   "category": "coding",
+   "order1": "A",
+   "order2": "B",
+   "verdict": "nvfp4",
+   "reason1": "Response A correctly handles the edge case of an empty string by raising a ValueError, whereas Response B would incorrectly return 0.",
+   "reason2": "Response B correctly handles the edge case of an empty string by raising a ValueError, whereas Response A would incorrectly return 0."
+  },
+  {
+   "id": "code3",
+   "category": "coding",
+   "order1": "tie",
+   "order2": "A",
+   "verdict": "tie",
+   "reason1": "Both responses are functionally identical, correctly handling frequency sorting and alphabetical tie-breaking, with only negligible stylistic differences in how the Counter keys are accessed.",
+   "reason2": "Response A is cleaner because it sorts the Counter object directly (which iterates over keys) without the redundant .keys() call found in Response B."
+  },
+  {
+   "id": "code4",
+   "category": "coding",
+   "order1": "A",
+   "order2": "B",
+   "verdict": "nvfp4",
+   "reason1": "Response A provides a single, syntactically correct code block with the right fix, whereas Response B is a chaotic series of attempts containing multiple syntax errors and incorrect signatures.",
+   "reason2": "Response B provides a single, clean, and correct code block, whereas Response A is cluttered with multiple garbled attempts and typos."
+  },
+  {
+   "id": "code5",
+   "category": "coding",
+   "order1": "A",
+   "order2": "B",
+   "verdict": "nvfp4",
+   "reason1": "Response A provides a single, correct, and clean code block as requested, whereas Response B includes explanatory text and multiple code blocks (including a corrected version), failing the 'Return onl",
+   "reason2": "Response B provides a single, correct, and clean code block as requested, whereas Response A includes redundant text and an initial flawed code block before the correct one."
+  },
+  {
+   "id": "html1",
+   "category": "html",
+   "order1": "A",
+   "order2": "A",
+   "verdict": "tie",
+   "reason1": "Response A includes a viewport meta tag, which is a standard requirement for a complete, accessible HTML5 page, whereas Response B omits it.",
+   "reason2": "Response A is the better fit because it includes only the required elements, whereas Response B adds an extra viewport meta tag that was not requested."
+  },
+  {
+   "id": "html2",
+   "category": "html",
+   "order1": "tie",
+   "order2": "tie",
+   "verdict": "tie",
+   "reason1": "Both responses provide identical, valid HTML markup that meets all requirements without any extra content.",
+   "reason2": "Both responses provide identical, valid HTML markup that meets all requirements without any extra content."
+  },
+  {
+   "id": "html3",
+   "category": "html",
+   "order1": "tie",
+   "order2": "tie",
+   "verdict": "tie",
+   "reason1": "Both responses are identical and correctly meet all requirements with valid, accessible markup.",
+   "reason2": "Both responses are identical and correctly meet all requirements with valid, accessible markup."
+  },
+  {
+   "id": "html4",
+   "category": "html",
+   "order1": "B",
+   "order2": "A",
+   "verdict": "exl3",
+   "reason1": "Response B outputs only the requested navigation markup, whereas Response A includes extra elements like the DOCTYPE, head, and a main section that were not required by the task.",
+   "reason2": "Response A outputs only the required HTML elements without extra markup, while Response B includes a full document structure and a main element that were not requested."
+  },
+  {
+   "id": "html5",
+   "category": "html",
+   "order1": "A",
+   "order2": "A",
+   "verdict": "tie",
+   "reason1": "Response A correctly places the <style> block inside the <div class=\"card\"> as requested, whereas Response B places it outside the card div.",
+   "reason2": "Response A places the <style> block outside the .card div, which is more semantically correct and avoids the slightly unusual structure of Response B where the style is nested inside the card."
+  },
+  {
+   "id": "prose1",
+   "category": "prose",
+   "order1": "B",
+   "order2": "B",
+   "verdict": "tie",
+   "reason1": "Response B is significantly more concise and fits the 120-180 word constraint, whereas Response A is far too long (approx. 250 words) and thus fails the brief's length requirement.",
+   "reason2": "Response B is significantly closer to the 120-180 word limit (approx. 170 words) compared to Response A (approx. 230 words), and it uses a more accessible analogy for a high school student."
+  },
+  {
+   "id": "prose2",
+   "category": "prose",
+   "order1": "B",
+   "order2": "B",
+   "verdict": "tie",
+   "reason1": "Response B is significantly closer to the 80-120 word limit (approx. 115 words) compared to Response A (approx. 160 words), and both meet the other criteria.",
+   "reason2": "Response B is within the 80-120 word limit and meets all other criteria, whereas Response A significantly exceeds the word count limit."
+  },
+  {
+   "id": "prose3",
+   "category": "prose",
+   "order1": "B",
+   "order2": "A",
+   "verdict": "exl3",
+   "reason1": "Response B is more concise and professional, staying well under the word limit while clearly meeting all requirements, whereas Response A is slightly wordier and less direct.",
+   "reason2": "Response A is more concise and professional, fitting the word count better while clearly meeting all requirements, whereas Response B is slightly wordier and less direct."
+  },
+  {
+   "id": "prose4",
+   "category": "prose",
+   "order1": "B",
+   "order2": "A",
+   "verdict": "exl3",
+   "reason1": "Response B strictly adheres to the 150-200 word limit (197 words) and presents a more focused, coherent argument, whereas Response A significantly exceeds the word limit (approx. 300 words) and is les",
+   "reason2": "Response A strictly adheres to the 150-200 word constraint (197 words), whereas Response B significantly exceeds the limit (approx. 260 words)."
+  },
+  {
+   "id": "prose5",
+   "category": "prose",
+   "order1": "A",
+   "order2": "B",
+   "verdict": "nvfp4",
+   "reason1": "Response A provides a clean, final answer that meets the word count and analogy constraints, whereas Response B includes its entire drafting process, multiple drafts, and meta-commentary, failing to p",
+   "reason2": "Response B provides a clean, final answer that meets the word count and analogy constraints, whereas Response A includes its entire drafting process and multiple iterations, making it confusing and ov"
+  },
+  {
+   "id": "story1",
+   "category": "narrative",
+   "order1": "A",
+   "order2": "B",
+   "verdict": "nvfp4",
+   "reason1": "Response A is a coherent, self-contained story that meets all constraints, whereas Response B is a messy draft containing repeated text, meta-commentary, and formatting errors that disrupt the narrati",
+   "reason2": "Response B is a coherent, self-contained story that meets all constraints, whereas Response A is cluttered with meta-commentary and contains a confusing, repetitive section that disrupts the narrative"
+  },
+  {
+   "id": "story2",
+   "category": "narrative",
+   "order1": "B",
+   "order2": "A",
+   "verdict": "exl3",
+   "reason1": "Response B meets the word count constraint (approx. 150 words) and provides a coherent, self-contained fable with a clear moral, whereas Response A significantly exceeds the 200-word limit (approx. 33",
+   "reason2": "Response A meets all constraints, including the word count and the specific formatting of the final sentence, whereas Response B likely exceeds the 200-word limit and lacks the explicit 'Moral:' prefi"
+  },
+  {
+   "id": "story3",
+   "category": "narrative",
+   "order1": "B",
+   "order2": "A",
+   "verdict": "exl3",
+   "reason1": "Response B provides a more coherent and technically satisfying resolution to the argument, whereas Response A ends on a somewhat ambiguous and less conclusive note.",
+   "reason2": "Response A provides a more coherent and technically satisfying resolution to the argument, whereas Response B ends on a somewhat abstract and less conclusive note."
+  },
+  {
+   "id": "story4",
+   "category": "narrative",
+   "order1": "A",
+   "order2": "B",
+   "verdict": "nvfp4",
+   "reason1": "Response A meets the word count constraint (approx. 145 words) with a coherent, satisfying narrative, whereas Response B significantly exceeds the limit (approx. 210 words) and ends on a more ambiguou",
+   "reason2": "Response B meets the word count constraint (approx. 140 words) while maintaining a coherent narrative arc and satisfying ending, whereas Response A significantly exceeds the 150-word limit (approx. 23"
+  },
+  {
+   "id": "story5",
+   "category": "narrative",
+   "order1": "A",
+   "order2": "B",
+   "verdict": "nvfp4",
+   "reason1": "Response A is within the 150-250 word limit, whereas Response B exceeds the limit at approximately 330 words.",
+   "reason2": "Response B meets the 150-250 word constraint (approx. 210 words) and provides a coherent, satisfying story, whereas Response A significantly exceeds the limit (approx. 380 words), failing a stated con"
+  },
+  {
+   "id": "sum1",
+   "category": "summary",
+   "order1": "tie",
+   "order2": "A",
+   "verdict": "tie",
+   "reason1": "Both responses provide exactly 3 bullet points, each one sentence, and faithfully cover the key points from the source notes.",
+   "reason2": "Response A provides exactly 3 bullet points with no extra header, strictly meeting the format requirement, while Response B includes an additional title line."
+  },
+  {
+   "id": "sum2",
+   "category": "summary",
+   "order1": "A",
+   "order2": "tie",
+   "verdict": "tie",
+   "reason1": "Response A is 79 words, meeting the 'at most 80 words' constraint, whereas Response B is 81 words and thus fails the format requirement.",
+   "reason2": "unparsable: The task requires a one-paragraph summary of at most 80 words.\n\nResponse A word "
+  },
+  {
+   "id": "sum3",
+   "category": "summary",
+   "order1": "tie",
+   "order2": "tie",
+   "verdict": "tie",
+   "reason1": "Both responses are nearly identical, accurately summarizing the quality tie and the conclusion about quantization in exactly two sentences, with only a trivial difference in the first sentence's phras",
+   "reason2": "Both responses are nearly identical in content, accurately summarizing the quality tie and the conclusion that quantization did not change the model's intelligence, and both meet the two-sentence form"
+  },
+  {
+   "id": "sum4",
+   "category": "summary",
+   "order1": "A",
+   "order2": "B",
+   "verdict": "nvfp4",
+   "reason1": "Response A is more faithful to the source by correctly identifying the quantization as '4bpw' (bits per weight) rather than Response B's less precise '4-bit quant', and it provides slightly more speci",
+   "reason2": "Response B is more faithful to the source by using the exact terminology '4bpw' instead of '4-bit', and it provides more specific details in the 'How' section, such as the 'no marlin backend' requirem"
+  },
+  {
+   "id": "sum5",
+   "category": "summary",
+   "order1": "B",
+   "order2": "A",
+   "verdict": "exl3",
+   "reason1": "Response B is faithful to the source and within the 280-character limit, whereas Response A exceeds the 280-character limit (approx. 300 chars), failing the exact format constraint.",
+   "reason2": "Response A is under the 280-character limit, whereas Response B exceeds it, failing the primary format constraint."
+  },
+  {
+   "id": "fmt1",
+   "category": "format",
+   "order1": "tie",
+   "order2": "tie",
+   "verdict": "tie",
+   "reason1": "Both responses list the exact same 7 prime numbers greater than 50 in ascending order with no extra text.",
+   "reason2": "Both responses list the exact same 7 prime numbers greater than 50 in ascending order with no extra text."
+  },
+  {
+   "id": "fmt2",
+   "category": "format",
+   "order1": "A",
+   "order2": "B",
+   "verdict": "nvfp4",
+   "reason1": "Response A outputs only the correct markdown table, whereas Response B includes extra text, corrections, and initially had a typo in the data.",
+   "reason2": "Response B outputs only the correct markdown table, whereas Response A includes extraneous text and corrections, violating the 'output nothing else' instruction."
+  },
+  {
+   "id": "fmt3",
+   "category": "format",
+   "order1": "tie",
+   "order2": "tie",
+   "verdict": "tie",
+   "reason1": "Both responses are identical and correctly follow all instructions.",
+   "reason2": "Both responses are identical and correctly follow all instructions."
+  },
+  {
+   "id": "fmt4",
+   "category": "format",
+   "order1": "B",
+   "order2": "A",
+   "verdict": "exl3",
+   "reason1": "Response A exceeds the 20-word limit, while Response B stays within the constraint.",
+   "reason2": "Response A is within the 20-word limit, while Response B significantly exceeds it."
+  },
+  {
+   "id": "fmt5",
+   "category": "format",
+   "order1": "B",
+   "order2": "B",
+   "verdict": "tie",
+   "reason1": "Response B outputs only the three lines as instructed, whereas Response A includes extensive reasoning and corrections, violating the 'nothing extra' constraint.",
+   "reason2": "Response B provides only the three lines of the haiku as requested, whereas Response A includes the haiku but the prompt implies a direct output check where B's final presentation is strictly the thre"
+  }
+ ],
+ "ts": "2026-09-01 18:29"
+}

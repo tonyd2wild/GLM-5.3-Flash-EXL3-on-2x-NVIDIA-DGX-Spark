@@ -1,21 +1,21 @@
-NVFP4 vs EXL3 on DGX Spark: same model, same boxes, same minute
+NVFP4 vs EXL3 on DGX Spark: same model, same boxes, same minute (v2, corrected)
 
-GLM-5.3-Flash, two 4-bit quants, two 2-node lanes of DGX Spark, benched simultaneously from c1 to c6. Time to first token, prefill, decode, wall-to-wall, context, KV pool, boot time, and a 12-item reasoning battery with thinking off and on.
+GLM-5.3-Flash, two 4-bit quants, two 2-node lanes of DGX Spark, benched simultaneously. Decode c1 to c6, time to first token on fresh prompts, prefill from 1.6K to 211K tokens, prefix caching, mixed load, context, KV pool, boot time, a 12-item reasoning battery and 40 real prompts across 8 categories. Plus the two things we got wrong, and how we found them.
 
-[IMAGE: card_nvfp4_vs_exl3.png]
+[IMAGE: card_nvfp4_vs_exl3_v2.png]
 
 
 THE SHORT VERSION
 
 Split decision.
 
-• NVFP4 decodes faster. 64.0 vs 61.5 tok/s single stream (+4%), +14 to 30% per stream at c2 to c5, higher aggregate at 5 of 6 concurrency levels, faster wall-to-wall through c5.
+• NVFP4 is faster on fresh work. Decode 64.0 vs 61.5 tok/s single stream (+4%), +14 to 30% per stream at c2 to c5. Time to first token on fresh 1.6K prompts 1.29 vs 2.31 s at c1 and 4.5 vs 9.8 s at c6. Cold prefill on a fresh 211K-token prompt 2,763 vs 1,752 tok/s.
 
-• EXL3 answers first. Warm time to first token 0.52 s vs 1.54 s at c1 and 1.0 s vs 4.6 s at c6. Prefill 3,099 vs 1,055 tok/s (2.9x). 1M context and a 1.40M-token KV pool vs 256K and 295K on the same two boxes. Boots to serving in 13 min vs 23.
+• EXL3 wins cached context, mixed load and headroom. Its prefix cache replays a 211K-token context in 0.8 s (NVFP4: 9.2 s) and a repeated 1.6K prompt in 0.52 s (NVFP4 gets no cache benefit below its 2,304-token block). Under a mixed load of four real prompts it does 43 vs 31 tok/s aggregate with a first token in 0.66 vs 1.97 s. It boots 1M context with a 1.40M-token KV pool (4.7x) on the same two boxes, in 13 min instead of 23.
 
-• Quality is a tie. 12-item reasoning battery: 11/12 vs 11/12 with thinking off (same miss), 12/12 vs 12/12 with thinking on. The quant did not change how smart the model is.
+• Quality is a tie. 40 real prompts, 8 categories: auto score 86% vs 85%, blind judge 9 wins NVFP4, 8 EXL3, 13 ties. 12-item reasoning battery: 11/12 vs 11/12 thinking off, 12/12 vs 12/12 thinking on. One real difference: with thinking off, EXL3 leaks self-correction into its answers and looped to the token cap twice; NVFP4 never did. Thinking on fixes it.
 
-• Our first run said EXL3 won everything. It was wrong. Two of the four Sparks were clock-capped at roughly 700 MHz after a reboot. We caught it, restarted all four, and ran the entire test again. Every number here is from the second run.
+• We got two things wrong and fixed both. Run one had two Sparks clock-capped at ~700 MHz. Run two measured first-token latency by repeating one prompt, which EXL3 served from its prefix cache. Everything below is from fresh, distinct prompts unless the row says cache.
 
 
 WHAT WE SERVED
@@ -23,29 +23,31 @@ WHAT WE SERVED
 Lane 1, NVFP4 (Reddie + Spark4)
 • Weights: RedHatAI/GLM-5.3-Flash-NVFP4
 • Runtime: vLLM, image ghcr.io/tonyd2wild/vllm-glm53-flash:sm121-v11-dflash2, the published 2-Spark recipe run verbatim
-• Context: 262,144. KV pool: 295,230 tokens. KV dtype fp8_e4m3, MoE backend marlin
-• Speculative decode: DFlash2 k=7. Graphs: enforce-eager. max-num-seqs 6
+• Context 262,144. KV pool 295,230 tokens. KV dtype fp8_e4m3, MoE backend marlin (weight-only dequant; native FP4 MoE kernels for sm_121 are not upstream yet), enforce-eager
+• Speculative decode: DFlash2 k=7. max-num-seqs 6. Prefix cache block size 2,304 tokens
 
 Lane 2, EXL3 (Bluey + Asusi)
 • Weights: brandonmusic/GLM-5.3-Flash-tr3-4bpw (EXL3 / TR3 4bpw)
 • Runtime: vLLM + exllamav3 built for sm_121a, Reederey87's 2-Spark kit
-• Context: 1,048,576. KV pool: 1,396,551 tokens. KV dtype fp8 (fp8_ds_mla), MoE exl3_moe trellis
-• Speculative decode: DFlash2 k=7. Graphs: enforce-eager. max-num-seqs 4 (this caps c5 and c6; it is config, not the quant)
+• Context 1,048,576. KV pool 1,396,551 tokens. KV dtype fp8 (fp8_ds_mla), MoE exl3_moe trellis, enforce-eager
+• Speculative decode: DFlash2 k=7. max-num-seqs 4 (caps c5 and c6; config, not the quant)
 
-Hardware: 4x NVIDIA DGX Spark (GB10, sm_121a, 128 GB unified memory), ConnectX-7 RoCE v2 fabric, two boxes per lane, tensor parallel 2, vLLM multiprocess executor. Bench client on a Mac mini over Tailscale.
+Neither lane is a roofline. The NVFP4 path is what vLLM can do on sm_121 today, the EXL3 path is exllamav3's first build for it. This is what ships on two Sparks right now.
+
+Hardware: 4x NVIDIA DGX Spark (GB10, sm_121a, 128 GB unified memory), ConnectX-7 RoCE v2 fabric, two boxes per lane, tensor parallel 2. Bench client on a Mac mini over Tailscale.
 
 
 HOW WE MEASURED
 
-• Isolation. Before measuring, every other consumer was moved off both lanes: the relay our agents use was parked on a different model, the coding-latency monitor that sends real probe completions was paused, and the three supervisor agents that default to this model were moved to a 27B on another box. We then proved it from each head's access log: NVFP4 head 128 chat requests in the window, all from the bench client; EXL3 head 129 from the bench client, and the only other traffic in the 30-minute log window was the kit's own post-serve warm-up burst of 15 requests, fifteen minutes before the tests began. Zero outside requests on either lane during the test.
+• Isolation. The relay our agents use was parked on another model, the latency monitor that sends real probes was paused, the three supervisor agents that default to this model were moved to a 27B on another box. Proven from each head's access log: NVFP4 head 128 chat requests in the window, all from the bench client; EXL3 head 129 from the bench client plus the kit's own 15-request warm-up burst fifteen minutes before the tests. Zero outside requests on either lane during any measurement.
 
-• Simultaneity. Both lanes were benched in parallel, same minute, same state. They share no GPUs, memory, or NCCL group.
+• Simultaneity. Both lanes benched in parallel, same minute, same state. No shared GPUs, memory or NCCL group.
 
-• Warm-up. Both engines JIT-compile kernels per request shape. We warmed each lane with 2x c1 and 1x c6 before measuring. A cold lane is not the lane's speed: EXL3's first-ever long prefill ran at 430 tok/s, warm it runs at 3,099.
+• Clocks. Healthy GB10 decode sits near 2,180 MHz at 95% utilization. After a reboot, two nodes were pinned at 611 to 728 MHz under load. All four verified at 2,171 to 2,190 MHz under a real request before this run.
 
-• Clocks. Healthy GB10 decode sits near 2,180 MHz at 95% utilization. After a reboot, two nodes were pinned at 611 to 728 MHz under load. We checked all four under a real request before this run: 2,171 to 2,190 MHz.
+• Fresh prompts. Every TTFT and prefill number below comes from a different prompt per request, so nothing can hit the prefix cache. Rows that say cache are the deliberate exception. Both engines JIT-compile kernels per request shape; two warm-up requests pay that first and are excluded.
 
-• Settings. Non-streaming, temperature 0, thinking off for the speed tests, roughly 300-token answers. Sweep: 3 rounds per concurrency level, medians. Single-stream: 5 rounds. Prefill: a 1,623-token prompt, warm median of the last 3 of 6.
+• Settings. Temperature 0, thinking off unless stated. Decode sweep: one counting prompt (deterministic ~300-token output, comparable to the recipe's own peak test), 3 rounds per level, 5 at c1. Counting is the easiest sequence for the DFlash2 drafter, so it is a ceiling; the real-prompt section is the floor.
 
 
 DECODE AND CONCURRENCY, c1 TO c6
@@ -60,7 +62,7 @@ Aggregate throughput, tokens per second (NVFP4 vs EXL3)
 • c5: 131.3 vs 116.9
 • c6: 136.3 vs 125.2
 
-Per-stream decode, tokens per second per request (NVFP4 vs EXL3)
+Per-stream decode (NVFP4 vs EXL3)
 • c1: 64.3 vs 61.8
 • c2: 55.5 vs 46.5
 • c3: 47.0 vs 41.2
@@ -68,33 +70,53 @@ Per-stream decode, tokens per second per request (NVFP4 vs EXL3)
 • c5: 47.0 vs 36.2
 • c6: 35.0 vs 35.8
 
-NVFP4 leads aggregate at five of six levels and per-stream at c1 to c5. The one exception is c4, where NVFP4 has a reproducible dip (111.2) and EXL3 posts its peak (149.7). At c6 the two converge per stream (35.0 vs 35.8), partly because EXL3's max-num-seqs of 4 caps it above c4.
-
-Single-stream, 5 rounds: NVFP4 64.0 tok/s (62.8 to 64.7, spread ±1.5%). EXL3 61.5 tok/s (59.8 to 61.9, spread ±1.7%). Both stable.
-
-Aggregate at c6, 3 rounds: NVFP4 135.6, EXL3 124.7. Per stream at c6: 34.5 vs 36.1.
+NVFP4 leads aggregate at five of six levels and per stream at c1 to c5. The exception is c4, a reproducible NVFP4 dip against EXL3's peak. Single-stream over 5 rounds: NVFP4 64.0 (62.8 to 64.7, ±1.5%), EXL3 61.5 (59.8 to 61.9, ±1.7%). Both stable.
 
 
-TIME TO FIRST TOKEN AND PREFILL
+TIME TO FIRST TOKEN, FRESH PROMPTS
 
 [IMAGE: chart_ttft.png]
 
-Time to first token, seconds, median (NVFP4 vs EXL3)
-• c1 (warm): 1.54 vs 0.52
-• c2: 2.19 vs 0.76
-• c3: 3.36 vs 0.83
-• c4: 3.05 vs 0.88
-• c5: 3.11 vs 1.06
-• c6: 4.60 vs 1.02
+Distinct 1.6K-token prompt for every request, median of 3 rounds, seconds (NVFP4 vs EXL3)
+• c1: 1.29 vs 2.31
+• c2: 2.14 vs 4.13
+• c3: 3.01 vs 5.85
+• c4: 3.00 vs 7.47
+• c5: 2.98 vs 8.96
+• c6: 4.53 vs 9.82
 
-Prefill on a 1,623-token prompt, warm: NVFP4 1,055 tok/s, EXL3 3,099 tok/s. EXL3 is 2.9x faster into the first token, and the gap widens under load: at c6 NVFP4 waits 4.6 s for the first token, EXL3 1.0 s. This is the metric that decides how an agent feels to use.
+Prefill on a fresh 1.6K prompt: NVFP4 1,225 tok/s, EXL3 684 tok/s. EXL3 also pays a one-time compile of several seconds the first time it sees a new prompt-length bucket; we observed 7.8 s on a new ~2.4K length, then 1.3 s for different text at the same length.
+
+For comparison, the identical prompt repeated: EXL3 0.52 s, NVFP4 1.54 s. That is the prefix cache, and it is the number we mistakenly published as first-token latency in version one.
+
+
+PREFILL VS PROMPT LENGTH
+
+Cold means a new prompt at that length: real prefill compute. Repeat means the identical prompt sent again: a prefix-cache hit, which measures the cache.
+
+Cold prefill, tok/s (NVFP4 vs EXL3)
+• 6,899 tokens: 1,482 vs 775 (EXL3 paid JIT here)
+• 13,772: 1,559 vs 1,614
+• 27,518: 1,876 vs 1,711
+• 55,097: 2,384 vs 1,660
+• 110,255: 2,684 vs 1,780
+• 211,001: 2,763 vs 1,752
+
+NVFP4 climbs with length; EXL3 is flat near 1,700. At 211K tokens NVFP4 is 58% faster. This matches what dfi measured at TP4 and posted in reply to version one.
+
+Repeat of the identical prompt, seconds (NVFP4 vs EXL3)
+• 6,899 tokens: 4.7 vs 0.4
+• 55,097: 6.1 vs 0.5
+• 211,001: 9.2 vs 0.8
+
+EXL3's prefix cache is close to free at any length. NVFP4's helps at long lengths but still costs seconds, and does nothing below one 2,304-token block. An agent that re-sends the same long context every turn lives in this table.
 
 
 WALL-TO-WALL
 
 [IMAGE: chart_w2w.png]
 
-Wall-to-wall for a 300-token answer, seconds, median (NVFP4 vs EXL3)
+300-token answer to the counting prompt, seconds, median (NVFP4 vs EXL3)
 • c1: 4.98 vs 5.18
 • c2: 5.76 vs 6.88
 • c3: 6.81 vs 7.76
@@ -102,58 +124,78 @@ Wall-to-wall for a 300-token answer, seconds, median (NVFP4 vs EXL3)
 • c5: 6.81 vs 8.85
 • c6: 10.09 vs 8.95
 
-Faster decode wins the full answer for NVFP4 at c1 to c5. At c6, EXL3's 3.6 s first-token advantage outweighs NVFP4's decode lead and EXL3 finishes first.
+
+REAL PROMPTS: 40 ACROSS 8 CATEGORIES
+
+[IMAGE: chart_categories.png]
+
+Five prompts each: coding, reasoning, JSON, HTML, prose, narrative, summarization, format following. Identical to both lanes, streamed so every prompt reports its own first-token time and decode rate. Graded automatically wherever there is a right answer: hidden tests executed against the code the model wrote, JSON parsed and compared exactly, HTML checked for the required structure, reasoning answers and format rules checked mechanically. Prose, stories and summaries were ranked by a blind pairwise judge (Qwen 27B on a separate box), each pair judged twice with positions swapped, a win counted only when both orders agree. Everything, including every failed check and every judge reason, is in the repo.
+
+Decode depends on the workload, same on both lanes (tokens per second, NVFP4 vs EXL3)
+• JSON 53 vs 50, HTML 53 vs 56, coding 48 vs 42, reasoning 48 vs 42
+• prose 19 vs 20, narrative 19 vs 18, format 29 vs 21, summaries 37 vs 34
+• counting, for reference: 64 vs 62
+
+That spread is DFlash2 acceptance. Predictable text drafts well; prose does not. The counting number is a ceiling, prose is the floor, and it is the same floor for both quants.
+
+Auto score, thinking off (NVFP4 vs EXL3)
+• coding 100% vs 80%
+• reasoning 100% vs 100%
+• JSON 100% vs 100%
+• HTML 100% vs 100%
+• prose 75% vs 55%
+• narrative 89% vs 76%
+• summaries 60% vs 70%
+• format 60% vs 96%
+• overall 86% vs 85%
+
+Blind judge, where rules cannot decide: NVFP4 9, EXL3 8, tie 13. Its reasons are almost all about who obeyed the length limit and who left a messy draft.
+
+Thinking on, coding and reasoning: 100% vs 100%.
+
+Mixed load, four different real prompts in flight: aggregate NVFP4 31.4 vs EXL3 43.4 tok/s, first token 1.97 vs 0.66 s, auto score 86% vs 84%.
+
+The one behavioral difference. With thinking off, EXL3 leaks self-correction into its answers. It typed "when lo < hi" instead of "while" in a binary search, noticed, and rewrote the function nine times until it hit the token cap. It typed 1,045,576 in a table instead of 1,048,576, then "wait, I made an error" and redid the table three times. It wrote a 130-word explainer, then "let me count carefully" and re-drafted it four times to the cap. NVFP4 did none of that on the same prompts, 151 tokens against 900 on the bug fix. It could be the quant, it could be the kit's serving configuration; we do not know yet and we have flagged it to the kit's authors. Thinking on makes it disappear: 5/5 coding on both.
+
+Both lanes overshoot word limits; it is a base-model habit. EXL3 overshoots harder.
+
+
+QUALITY: THE 12-ITEM BATTERY
+
+Three math word problems, three logic puzzles, two code items, a leap-year rule, the bat-and-ball trap, two strict-format tasks. Thinking off: 11/12 vs 11/12, same single miss (reversing the word "benchmark"). Thinking on: 12/12 vs 12/12, reasoning traces 341 vs 333 characters on average, near-identical. Published KLD-vs-FP16 figures put EXL3/TR3 4bpw near 0.025 and NVFP4 near 0.060, so a gap exists in the output distribution; neither the 12 items nor the 40 prompts resolved it. KLD is the instrument for that question, and it is next.
 
 
 CONTEXT, KV POOL, BOOT
 
-• Context that booted: NVFP4 262,144. EXL3 1,048,576 (4x).
-• KV pool: NVFP4 295,230 tokens. EXL3 1,396,551 tokens (4.7x).
-• Boot, launch command to first healthy response: NVFP4 23 min (worker loads its weights over NFS from the head). EXL3 13 min (local weights on both nodes, warm trellis JIT cache).
-
-The NVFP4 recipe cannot boot at 1M context on these two boxes; there is not enough room left for the KV pool. We learned that the hard way and it is why the recipe pins 256K.
-
-
-QUALITY: DOES THE QUANT CHANGE HOW SMART IT IS?
-
-Probe. Same prompt to both, thinking off, temperature 0: write top-k-frequent in O(n log k) with an explanation and an edge case, plus the bat-and-ball trap. Both correct, both answered $0.05 with a check line.
-
-Battery. Twelve auto-graded items with checkable final answers: three multi-step math word problems, three logic puzzles, two code items (predict the output, fix the one-line bug), a leap-year rule, the bat-and-ball trap, and two strict-format tasks (exact JSON, reversed string). Identical prompts to both lanes, temperature 0, run twice: thinking off (direct answer) and thinking on (the model reasons first).
-
-Accuracy (NVFP4 vs EXL3)
-• Thinking off: 11/12 vs 11/12. Same single miss on both: reversing the word "benchmark".
-• Thinking on: 12/12 vs 12/12. Every item finished naturally, none hit the token limit.
-• By category, thinking off: math 3/3 vs 3/3, logic 3/3 vs 3/3, code 2/2 vs 2/2, knowledge 1/1 vs 1/1, reasoning 1/1 vs 1/1, format 1/2 vs 1/2.
-• Reasoning trace length, thinking on: 341 chars average for NVFP4, 333 for EXL3.
-
-The traces themselves, same item, both lanes, thinking on. The clock-hands angle at 3:15:
-
-NVFP4: "At 3:15, the minute hand is at 15 minutes, which is at the 3 position (90 degrees from 12). The hour hand: at 3:00 it's at 90 degrees. In 15 minutes, it moves 15 x 0.5 = 7.5 degrees. So hour hand is at 97.5 degrees. Minute hand at 15 minutes: 15 x 6 = 90 degrees. Angle between: 97.5 - 90 = 7.5 degrees."
-
-EXL3: "At 3:15, the minute hand is at 15 minutes, which is at the 3 position (90 degrees from 12). The hour hand at 3:15 has moved past 3. At 3:00 it's at 90 degrees. Each minute, the hour hand moves 0.5 degrees. So at 3:15, hour hand is at 90 + 7.5 = 97.5 degrees. Minute hand at 15 minutes: 15 x 6 = 90 degrees. Angle between them: 97.5 - 90 = 7.5 degrees."
-
-Published KLD-vs-FP16 figures put EXL3/TR3 4bpw near 0.025 (tying FP8) and NVFP4 near 0.060, so a gap is expected to exist in the output distribution. On a twelve-item task battery it did not show. Twelve items is a probe of intelligence, not a benchmark suite; treat any single-item difference as noise unless it repeats. One honest footnote: temperature-0 answers were not batch-invariant on either engine. The reversed-string item passed on both lanes in one run and failed on both in the next, with identical prompts.
+• Context that booted: NVFP4 262,144. EXL3 1,048,576.
+• KV pool: NVFP4 295,230 tokens. EXL3 1,396,551 (4.7x).
+• Boot to first healthy response: NVFP4 23 min (worker loads weights over NFS). EXL3 13 min.
+• The NVFP4 recipe cannot boot at 1M context on these two boxes; there is no room left for the KV pool.
 
 
-WHAT WE GOT WRONG THE FIRST TIME
+WHAT WE GOT WRONG
 
-Our first pass, published to nobody, had EXL3 winning every metric: 1.7x single stream, 5.7x prefill, NVFP4 swinging ±16% run to run. The tell was that NVFP4's numbers did not match its own recipe's published peak. Two of the four Sparks had come out of a reboot with their GPU clocks pinned between 611 and 728 MHz under load, against a healthy 2,180. Restart, verify clocks under a real request on all four nodes, run everything again. NVFP4 went from 35.9 to 64.0 tok/s single stream and from ±16% to ±1.5%. Check clocks before you trust any number on this hardware.
+Part one, clocks. Our first run had EXL3 winning every metric by wide margins. Two of the four Sparks had come out of a reboot with GPU clocks pinned between 611 and 728 MHz. The tell was NVFP4's numbers not matching its own recipe's published peak. Restart, verify clocks under load, run everything again.
+
+Part two, the prefix cache. Version one of this article said EXL3 answers first: 0.52 vs 1.54 s at c1 and 1.0 vs 4.6 s at c6, with a 2.9x prefill advantage. Every one of those requests carried the same prompt. EXL3 caches prefixes at fine granularity and replayed the cached KV; NVFP4's cache works in 2,304-token blocks, so a 1.6K prompt never hit it and NVFP4 did real prefill every time. A reader said EXL3 winning prefill on NVFP4-capable silicon made no sense. He was right. Re-measured with distinct prompts, NVFP4 leads first-token latency at every concurrency and prefill at every length above 14K.
+
+Both mistakes were found by checking our numbers against someone else's. That is the point of publishing them.
 
 
 WHICH ONE TO RUN
 
-• Interactive agents, long context, many concurrent sessions: EXL3. The first token lands 3 to 4x sooner under load, the KV pool is 4.7x larger, and 1M context boots on the same two boxes.
-• Batch generation, short prompts, throughput per box: NVFP4. It decodes 4% faster alone and 14 to 30% faster per stream at moderate concurrency.
-• Both run DFlash2 speculative decoding, both answer the same questions the same way. Pick on latency profile and context, not on quality.
+• Fresh single-shot work, short or long prompts, one or a few users: NVFP4. Faster decode, faster first token, faster long prefill.
+• Agents that re-send the same long context every turn, many sessions in flight, contexts past 256K: EXL3. The prefix cache, the KV pool, the 1M context and the mixed-load numbers are all built for that.
+• Either way, run thinking on for anything that must not loop, and warm the lane before you measure it.
 
 
 PINS THAT MATTER
 
 • NVFP4: run the published 2-Spark recipe verbatim. 256K context, worker first, head 25 s later. vm.swappiness=0 resets on reboot. Poll /health, never /v1/models.
-• EXL3 kit: count_shards needs find -L on a symlinked HF cache. chown the vLLM cache dir on both nodes. It ships bound to loopback; set --host 0.0.0.0. The worker needs the full 164 GiB of weights on local disk.
-• Both: roughly 91 GiB of weights per 121 GiB usable node. Drop page caches on every node before every launch.
-• Both: kernels JIT-compile per request shape. Warm up before measuring and never bench a cold lane.
+• EXL3 kit: count_shards needs find -L on a symlinked HF cache. chown the vLLM cache dir on both nodes. It ships bound to loopback; set --host 0.0.0.0. The worker needs the full 164 GiB of weights locally.
+• Both: roughly 91 GiB of weights per 121 GiB usable node. Drop page caches before every launch.
 • Both: check GPU clocks under load after any reboot.
+• Anyone benchmarking either: use a different prompt for every request, or you are measuring the cache.
 
 [IMAGE: poster_nvfp4_vs_exl3.png]
 
@@ -161,6 +203,5 @@ PINS THAT MATTER
 CREDITS AND LINKS
 
 NVFP4 recipe: github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-DFlash2-2x-DGX-Spark
-EXL3 kit: Reederey87's glm53-flash-exl3-2x-dgx-spark, weights by brandonmusic (GLM-5.3-Flash-tr3-4bpw), exllamav3 by turboderp, DFlash2 by IncoAI, NVFP4 weights by RedHatAI, GLM-5.3-Flash by zai-org. Our fork with the fixes, tools, raw JSON and this write-up: github.com/tonyd2wild/glm53-flash-exl3-2x-dgx-spark.
-
-Every number above is computed from the JSON in results/ by the scripts in tools/. If you find a mistake, the data is there.
+EXL3 kit: Reederey87's glm53-flash-exl3-2x-dgx-spark, weights by brandonmusic (GLM-5.3-Flash-tr3-4bpw), exllamav3 by turboderp, DFlash2 by IncoAI, NVFP4 weights by RedHatAI, GLM-5.3-Flash by zai-org. Thanks to dfi, Zeus and Mia for pushing on version one.
+Our fork with the fixes, every tool, the raw JSON for every number here and this write-up: github.com/tonyd2wild/glm53-flash-exl3-2x-dgx-spark.

@@ -1,0 +1,801 @@
+{
+ "lane": "nvfp4",
+ "model": "glm-5.3-flash",
+ "thinking": "off",
+ "concurrency": 4,
+ "n": 40,
+ "summary": {
+  "coding": {
+   "n": 5,
+   "auto_score": 1.0,
+   "ttft_med_s": 6.84,
+   "decode_med_tok_s": 32.9,
+   "tokens_med": 102
+  },
+  "reasoning": {
+   "n": 5,
+   "auto_score": 1.0,
+   "ttft_med_s": 1.65,
+   "decode_med_tok_s": 30.0,
+   "tokens_med": 176
+  },
+  "json": {
+   "n": 5,
+   "auto_score": 1.0,
+   "ttft_med_s": 6.83,
+   "decode_med_tok_s": 30.3,
+   "tokens_med": 36
+  },
+  "html": {
+   "n": 5,
+   "auto_score": 1.0,
+   "ttft_med_s": 6.83,
+   "decode_med_tok_s": 36.2,
+   "tokens_med": 134
+  },
+  "prose": {
+   "n": 5,
+   "auto_score": 0.6,
+   "ttft_med_s": 1.75,
+   "decode_med_tok_s": 12.5,
+   "tokens_med": 193
+  },
+  "narrative": {
+   "n": 5,
+   "auto_score": 0.86,
+   "ttft_med_s": 2.66,
+   "decode_med_tok_s": 13.6,
+   "tokens_med": 245
+  },
+  "summary": {
+   "n": 5,
+   "auto_score": 0.6,
+   "ttft_med_s": 1.74,
+   "decode_med_tok_s": 21.4,
+   "tokens_med": 180
+  },
+  "format": {
+   "n": 5,
+   "auto_score": 0.8,
+   "ttft_med_s": 6.94,
+   "decode_med_tok_s": 11.6,
+   "tokens_med": 19
+  }
+ },
+ "batches": [
+  {
+   "ids": [
+    "code1",
+    "reason1",
+    "json1",
+    "html1"
+   ],
+   "wall_s": 13.46,
+   "agg_tok_s": 38.2,
+   "ttft_med_s": 6.84
+  },
+  {
+   "ids": [
+    "prose1",
+    "story1",
+    "sum1",
+    "fmt1"
+   ],
+   "wall_s": 28.58,
+   "agg_tok_s": 31.6,
+   "ttft_med_s": 1.32
+  },
+  {
+   "ids": [
+    "code2",
+    "reason2",
+    "json2",
+    "html2"
+   ],
+   "wall_s": 16.88,
+   "agg_tok_s": 33.9,
+   "ttft_med_s": 6.83
+  },
+  {
+   "ids": [
+    "prose2",
+    "story2",
+    "sum2",
+    "fmt2"
+   ],
+   "wall_s": 20.51,
+   "agg_tok_s": 31.1,
+   "ttft_med_s": 1.86
+  },
+  {
+   "ids": [
+    "code3",
+    "reason3",
+    "json3",
+    "html3"
+   ],
+   "wall_s": 7.48,
+   "agg_tok_s": 49.7,
+   "ttft_med_s": 0.52
+  },
+  {
+   "ids": [
+    "prose3",
+    "story3",
+    "sum3",
+    "fmt3"
+   ],
+   "wall_s": 28.92,
+   "agg_tok_s": 24.2,
+   "ttft_med_s": 1.75
+  },
+  {
+   "ids": [
+    "code4",
+    "reason4",
+    "json4",
+    "html4"
+   ],
+   "wall_s": 13.85,
+   "agg_tok_s": 26.1,
+   "ttft_med_s": 7.67
+  },
+  {
+   "ids": [
+    "prose4",
+    "story4",
+    "sum4",
+    "fmt4"
+   ],
+   "wall_s": 21.71,
+   "agg_tok_s": 31.1,
+   "ttft_med_s": 1.44
+  },
+  {
+   "ids": [
+    "code5",
+    "reason5",
+    "json5",
+    "html5"
+   ],
+   "wall_s": 10.5,
+   "agg_tok_s": 67.7,
+   "ttft_med_s": 0.51
+  },
+  {
+   "ids": [
+    "prose5",
+    "story5",
+    "sum5",
+    "fmt5"
+   ],
+   "wall_s": 24.72,
+   "agg_tok_s": 22.4,
+   "ttft_med_s": 6.94
+  }
+ ],
+ "overall": {
+  "auto_score": 0.857,
+  "ttft_med_s": 1.97,
+  "decode_med_tok_s": 23.8,
+  "agg_tok_s_med": 31.4
+ },
+ "items": [
+  {
+   "ttft_s": 6.84,
+   "wall_s": 10.36,
+   "completion_tokens": 102,
+   "prompt_tokens": 48,
+   "decode_tok_s": 28.6,
+   "reasoning_chars": 0,
+   "finish": "stop",
+   "output": "```python\ndef merge_intervals(intervals):\n    if not intervals:\n        return []\n    intervals = sorted(intervals, key=lambda x: x[0])\n    merged = [intervals[0]]\n    for start, end in intervals[1:]:\n        last = merged[-1]\n        if start <= last[1]:\n            last[1] = end if end > last[1] else last[1]\n        else:\n            merged.append([start, end])\n    return merged\n```",
+   "id": "code1",
+   "category": "coding",
+   "prompt": "Write a Python function merge_intervals(intervals) that merges overlapping [start, end] intervals and returns the merged list sorted by start. Return only one ```python code block.",
+   "score": 1.0,
+   "fails": []
+  },
+  {
+   "ttft_s": 0.3,
+   "wall_s": 12.93,
+   "completion_tokens": 204,
+   "prompt_tokens": 60,
+   "decode_tok_s": 16.1,
+   "reasoning_chars": 0,
+   "finish": "stop",
+   "output": "# Setting Up the Problem\n\nLet Ben's current age = **B**\nThen Ana's current age = **2B**\n\n# Using the Future Condition\n\nIn 6 years:\n- Ana's age: 2B + 6\n- Ben's age: B + 6\n\nAna will be 1.5 times Ben's age:\n\n$$2B + 6 = 1.5(B + 6)$$\n\n# Solving the Equation\n\n$$2B + 6 = 1.5B + 9$$\n\n$$2B - 1.5B = 9 - 6$$\n\n$$0.5B = 3$$\n\n$$B = 6$$\n\n# Checking the Answer\n\n- Ben is now 6, Ana is now 12 \u2713 (Ana is twice Ben's age)\n- In 6 years: Ben is 12, Ana is 18 \u2713 (18 = 1.5 \u00d7 12)\n\nANSWER: 6",
+   "id": "reason1",
+   "category": "reasoning",
+   "prompt": "Ana is twice as old as Ben. In 6 years Ana will be 1.5 times Ben's age. How old is Ben now?\n\nGive your final answer on the last line exactly as: ANSWER: <answer>",
+   "score": 1.0,
+   "fails": []
+  },
+  {
+   "ttft_s": 6.84,
+   "wall_s": 8.51,
+   "completion_tokens": 45,
+   "prompt_tokens": 90,
+   "decode_tok_s": 26.3,
+   "reasoning_chars": 0,
+   "finish": "stop",
+   "output": "{\"invoice_id\": 4471, \"customer\": \"Marta Ruiz\", \"issued\": \"2026-03-14\", \"amount\": 1250.50, \"due_days\": 30}",
+   "id": "json1",
+   "category": "json",
+   "prompt": "Extract into a JSON object with keys invoice_id (integer), customer (string), issued (ISO date string), amount (number), due_days (integer):\n\n\"Invoice 4471 was issued to Marta Ruiz on 2026-03-14 for $1,250.50, due in 30 days.\"\n\nOutput only the JSON, no prose, no code fences.",
+   "score": 1.0,
+   "fails": []
+  },
+  {
+   "ttft_s": 9.08,
+   "wall_s": 13.46,
+   "completion_tokens": 163,
+   "prompt_tokens": 71,
+   "decode_tok_s": 37.0,
+   "reasoning_chars": 0,
+   "finish": "stop",
+   "output": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Spark Bench</title>\n</head>\n<body>\n  <header>\n    <h1>Spark Bench</h1>\n    <nav>\n      <a href=\"#home\">Home</a>\n      <a href=\"#results\">Results</a>\n      <a href=\"#method\">Method</a>\n    </nav>\n  </header>\n  <main>\n    <section id=\"summary\">\n      <p>Spark Bench is a benchmarking suite for evaluating performance across a range of workloads.</p>\n    </section>\n  </main>\n</body>\n</html>",
+   "id": "html1",
+   "category": "html",
+   "prompt": "Write a complete HTML5 page: a <header> containing an <h1> that reads Spark Bench and a <nav> with three links (Home, Results, Method), then a <main> containing a <section id=\"summary\"> with one paragraph.\n\nOutput only the HTML.",
+   "score": 1.0,
+   "fails": []
+  },
+  {
+   "ttft_s": 1.32,
+   "wall_s": 20.44,
+   "completion_tokens": 227,
+   "prompt_tokens": 35,
+   "decode_tok_s": 11.8,
+   "reasoning_chars": 0,
+   "finish": "stop",
+   "output": "Tensor parallelism is a technique for running huge AI models on many computers (or chips) working together at once.\n\nHere's the problem it solves: modern AI models are often too big to fit on a single chip's memory. Even if they fit, one chip alone would be too slow. So we split the model across many chips.\n\nThe key idea: a model's core computation involves multiplying giant grids of numbers called tensors. Instead of each chip doing the whole calculation, we slice the tensors into pieces and give each chip one piece. All chips work simultaneously on their slices, then quickly share results so the computation stays correct.\n\nThink of it like a group project where a giant poster must be painted. Rather than one person painting everything, each student paints one section. They coordinate at the edges so the sections line up perfectly.\n\nThe catch: chips must constantly communicate with each other, which takes time. So tensor parallelism works best when chips are physically close together\u2014like within one server\u2014with fast connections between them.\n\nFor truly enormous models, engineers combine tensor parallelism with other splitting strategies, like dividing different layers across machines.",
+   "id": "prose1",
+   "category": "prose",
+   "prompt": "Explain what tensor parallelism is to a smart high-school student, in 120 to 180 words.",
+   "score": 0.0,
+   "fails": [
+    "words 194 in 120-180"
+   ]
+  },
+  {
+   "ttft_s": 2.66,
+   "wall_s": 28.58,
+   "completion_tokens": 360,
+   "prompt_tokens": 50,
+   "decode_tok_s": 13.9,
+   "reasoning_chars": 0,
+   "finish": "stop",
+   "output": "The storm rolled in just as I finished closing the shop. I was blowing out the lantern when the door chimed\u2014old Mr. Whitfield, soaked to the bone, clutching a leather ledger to his chest.\n\n\"You're still open,\" he said. It wasn't a question.\n\n\"Closing up, actually.\"\n\nHe set the ledger on my counter like it weighed a hundred pounds. \"I need to return this. Before the thunder comes.\"\n\nI glanced at the window. Thunder was already grumbling in the distance. \"Return it where? This is my shop.\"\n\nHis face went pale. \"You don't remember.\"\n\n\"Remember what?\"\n\nHe opened the ledger. The pages were filled with my handwriting\u2014entries I'd never written. *Owed: one memory, paid in full. Owed: ten years, paid in full. Owed: her name, paid in full.* Page after page of things I'd apparently sold.\n\n\"I don't understand,\" I whispered.\n\n\"You will,\" he said. \"You always do. That's why you keep coming back.\"\n\nLightning flashed, and in its glare I saw the shop clearly for the first time\u2014dust thick on shelves I somehow knew I'd never stocked, a photograph on the wall of me standing beside a woman whose face was a blur.\n\n\"Who was she?\" I asked.\n\nMr. Whitfield was already at the door, collar up against the rain. \"Check the last page.\"\n\nI flipped to the end of the ledger. One final entry, in fresh ink, dated today: *Owed: the reason you keep the lantern lit. Paid in full.*\n\nOutside, thunder cracked. When I turned back, the lantern was dark\u2014and I couldn't remember why I'd ever lit it at all.",
+   "id": "story1",
+   "category": "narrative",
+   "prompt": "Write a 150 to 250 word short story in first person that includes the words lantern, ledger and thunder, contains at least two lines of dialogue, and ends with a twist.",
+   "score": 0.8,
+   "fails": [
+    "words 267 in 150-250"
+   ]
+  },
+  {
+   "ttft_s": 1.32,
+   "wall_s": 15.94,
+   "completion_tokens": 303,
+   "prompt_tokens": 1750,
+   "decode_tok_s": 20.7,
+   "reasoning_chars": 0,
+   "finish": "stop",
+   "output": "# Deploy notes summary \u2014 2Wild bring-up (Bluey + Asusi)\n\n- **RoCE pinning:** Upstream `.env.example` pins an asymmetric rail that's backwards on our Sparks (`rocep1s0f1` is DOWN, `rocep1s0f0` is ACTIVE), so we pin both head and worker to rail 0 (`enp1s0f0np0` / `rocep1s0f0`, `NCCL_IB_GID_INDEX=3`), matching the proven NVFP4 TP4 fabric.\n- **Pre-launch fixes:** Patch `count_shards` to use `find -L` (symlinked HF caches return 0 shards otherwise), ensure the worker has \u2265164 GiB free (rsyncs the full model), `chown` the root-owned `~/.cache/vllm-glm53-flash/` on both nodes, and `sed` the API bind from `127.0.0.1` to `0.0.0.0` for off-box access.\n- **Launch procedure:** Drop page cache on both nodes (`drop_caches`) to pass the MemFree \u2265 90 GiB gate, source `.env` and run `prod-start.sh` (expect ~12 min to serve, long cold JIT, worker GPU > 0% while compiling), and verify with `curl http://192.168.192.1:8000/v1/models`.",
+   "id": "sum1",
+   "category": "summary",
+   "prompt": "Summarize the following notes in exactly 3 bullet points, each one sentence.\n\n---\n# Deploy notes \u2014 our 2Wild bring-up (Bluey + Asusi)\n\n## RoCE finding (the one that would have bitten us)\nUpstream `.env.example` pins an **asymmetric** rail (head `enp1s0f1np1`/`rocep1s0f1`, worker\n`f0`). On our Sparks that's backwards: **`rocep1s0f1` is DOWN on every node, `rocep1s0f0` is\nACTIVE**. So we pin **both head and worker to rail 0**:\n- IF `enp1s0f0np0`, IB `rocep1s0f0`, `NCCL_IB_GID_INDEX=3`\n- gid3 verified as `::ffff:192.168.192.1` (Bluey) / `::ffff:192.168.192.3` (Asusi)\n\nThis matches the fabric our NVFP4 TP4 lane already uses, so it's proven silicon.\n\n## Image\nBuilt locally on Bluey: `docker build -t glm53-flash-sm121:local .` \u2192 `IMAGE=glm53-flash-sm121:local`,\n`SKIP_PULL=1`. Self-built so the sm_121a cubins match our driver exactly. (The kit's JIT-cache\nwipe reads `IMAGE=` verbatim, so a self-built tag with no ghcr digest still wipes correctly.)\n\n## Launch runbook (exact)\nWeights land in `~/.cache/huggingface/hub/` on Bluey (head). Then, from Bluey:\n```bash\n# 1. free the page cache the 164G download parked (UMA box \u2014 MemFree gates the boot)\nfor n in \"tonyspark1@192.168.192.1\" \"tonyspark3@192.168.192.3\"; do\n  ssh $n 'sync; echo 3 | sudo tee /proc/sys/vm/drop_caches >/dev/null; free -g | awk \"/^Mem/{print \\\"free \\\"\\$4\\\"G\\\"}\"'\ndone\n# 2. launch (source .env so prod-start sees WORKER_SSH + fabric vars)\ncd ~/glm53-flash-exl3-2x-dgx-spark\nset -a; . ./.env; set +a\n./local/prod-start.sh\n# 3. poll (cold JIT is long \u2014 trellis kernels compile; READY_TIMEOUT=4800)\ncurl -s http://192.168.192.1:8000/v1/models   # -> GLM-5.3-Flash-EXL3\n```\n\n`prod-start.sh` does: `./start.sh stop` (idempotent) \u2192 wait for MemFree \u2265 90 GiB on **both**\nnodes (worker checked over `WORKER_SSH`, timeout 600s, proceeds anyway after) \u2192 JIT-cache shape\nguard (hashes DFLASH_TOKENS/IMAGE/EXTRA_ARGS/...; wipes Triton+TileLang on both nodes on change;\nfirst boot always wipes) \u2192 `./start.sh start` (worker `--headless` over SSH, then head + API).\n\n## Watch during boot\n- All containers stay Up; **worker GPU > 0%** while compiling (0% + head looping = a mount/config\n  fault, same failure class as the NVFP4 lane).\n- First boot after a cache wipe = long cold JIT. Slow, not dead.\n\n## Gotchas we hit + fixed (2026-09-01 first bring-up)\n1. **`count_shards()` counts 0 on a symlinked HF cache (upstream bug).** `start.sh`'s\n   `count_shards` uses `find \"$repo/snapshots/$ref\" -maxdepth 1 -type f -name '*.safetensors'`.\n   A standard HF hub cache stores snapshot files as **symlinks** into `../../blobs/`, and\n   `find -type f` does NOT match symlinks, so it returns 0 \u2192 the launch dies with\n   `ERROR: download finished with 0 / 120 shards` even though all 120 shards are present and\n   complete. **Fix: `find -L ...`** (follow symlinks; a symlink-to-regular-file then matches\n   `-type f`, which also validates the blob exists). One-word change on the `find` in\n   `count_shards`. Worth a PR back upstream \u2014 breaks on any normal HF cache.\n2. **The worker needs the FULL model on disk (~164 GiB), not half.** vLLM TP reads slices out\n   of every safetensors file, so `start.sh` rsyncs the whole cache to the worker. Asusi only had\n   ~122 GiB free (a dead 182 GiB NVFP4-ablit copy from the retired GLM TP4 lane was squatting in\n   `/var/tmp/models`). Cleared it \u2192 303 GiB free. **Check worker free space >= model size before\n   launch;** the kit only WARNs, it doesn't stop.\n3. **`~/.cache/vllm-glm53-flash/` can be ROOT-OWNED \u2014 and it is NOT harmless.** A prior container\n   wrote it as root. First symptom is the config-shape stamp failing with `Permission denied`\n   (looks benign). The real bite: the launch then tries `mkdir ~/.cache/vllm-glm53-flash/tilelang`\n   as the run user, fails, and **exits with NO containers** \u2014 a dead launch that looks like a\n   silent no-op. **Fix on BOTH nodes before launching:**\n   `sudo chown -R $USER:$USER ~/.cache/vllm-glm53-flash && mkdir -p ~/.cache/vllm-glm53-flash/{tilelang,triton}`.\n4. **The kit binds the API to loopback only** \u2014 `start.sh` passes `--host 127.0.0.1` (\"on purpose\",\n   security). It serves fine on-box (`curl 127.0.0.1:8000` works) but the fabric, the tailnet, the\n   fleet, the coding monitor and any remote bench all get **connection refused**. On our private\n   tailnet fleet every endpoint is `0.0.0.0`, so: `sed -i 's/--host 127.0.0.1/--host 0.0.0.0/g' start.sh`\n   (two serve lines; the `http://127.0.0.1:${PORT}` health-check URLs are fine to leave). Needs a\n   relaunch. Verify from OFF-box: `curl http://<tailnet-ip>:8000/v1/models`.\n5. **It re-ships the image to the worker on EVERY launch.** `ensure_image()` compares an image key\n   that never matches for a locally-built image (head = `tag@sha256:\u2026`, worker after\n   `docker save | ssh docker load` = RootFS layer list), so it always logs \"will refresh worker\"\n   and pushes the ~21 GB image again. Harmless, ~1\u20132 min per launch. Fix later: key on `.Id` for\n   local images, or skip when the worker already has the tag.\n6. **UMA page cache starves the memory gate after big file moves.** Right after the 164 GiB rsync\n   the worker showed **MemFree 1 GiB** (everything parked in page cache) and `prod-start` stalled at\n   its \u226590 GiB gate. `sync; echo 3 | sudo tee /proc/sys/vm/drop_caches` on both nodes \u2192 117 GiB\n   free, gate passes on the next poll. Do this before every launch on these boxes.\n\nBoot timing observed: cold first boot \u2248 12 min to serve (weights ~5 min + trellis JIT); a warm\nrelaunch is also \u2248 12 min (weight load dominates, JIT is cached). DFlash2 draft ",
+   "score": 1.0,
+   "fails": []
+  },
+  {
+   "ttft_s": 1.32,
+   "wall_s": 2.13,
+   "completion_tokens": 14,
+   "prompt_tokens": 34,
+   "decode_tok_s": 16.0,
+   "reasoning_chars": 0,
+   "finish": "stop",
+   "output": "53\n59\n61\n67\n71\n73\n79",
+   "id": "fmt1",
+   "category": "format",
+   "prompt": "List exactly 7 prime numbers greater than 50, one per line, ascending. Output nothing else.",
+   "score": 1.0,
+   "fails": []
+  },
+  {
+   "ttft_s": 8.87,
+   "wall_s": 16.81,
+   "completion_tokens": 334,
+   "prompt_tokens": 80,
+   "decode_tok_s": 41.9,
+   "reasoning_chars": 0,
+   "finish": "stop",
+   "output": "```python\nimport re\n\ndef parse_duration(s):\n    \"\"\"\n    Convert a duration string like '1h30m15s', '45s', '2h', '3m', '1h1s'\n    into total seconds (int).\n\n    Units may be omitted, but always appear in h, m, s order.\n    \"\"\"\n    match = re.fullmatch(r'(?:(\\d+)h)?(?:(\\d+)m)?(?:(\\d+)s)?', s)\n    if not match:\n        raise ValueError(f\"Invalid duration string: {s!r}\")\n\n    hours, minutes, seconds = match.groups()\n    total = 0\n    if hours:\n        total += int(hours) * 3600\n    if minutes:\n        total += int(minutes) * 60\n    if seconds:\n        total += int(seconds)\n\n    return total\n```\n\n**Examples:**\n\n```python\nparse_duration('1h30m15s')  # 5415\nparse_duration('45s')       # 45\nparse_duration('2h')        # 7200\nparse_duration('3m')        # 180\nparse_duration('1h1s')      # 3601\n```\n\nThe regex `(?:(\\d+)h)?(?:(\\d+)m)?(?:(\\d+)s)?` matches optional hour, minute, and second components in order. `re.fullmatch` ensures the entire string conforms to the pattern, and any string that doesn't (like `'1s2h'` or empty string) raises a `ValueError`.",
+   "id": "code2",
+   "category": "coding",
+   "prompt": "Write a Python function parse_duration(s) that converts strings like '1h30m15s', '45s', '2h', '3m', '1h1s' into total seconds (int). Units may be omitted but always appear in h, m, s order. Return only one ```python code block.",
+   "score": 1.0,
+   "fails": []
+  },
+  {
+   "ttft_s": 6.83,
+   "wall_s": 9.28,
+   "completion_tokens": 60,
+   "prompt_tokens": 56,
+   "decode_tok_s": 24.1,
+   "reasoning_chars": 0,
+   "finish": "stop",
+   "output": "The number of ways to get exactly 2 heads in 4 flips is C(4,2) = 6, and there are 2\u2074 = 16 total outcomes.\n\nSo the probability is 6/16 = 3/8.\n\nANSWER: 3/8",
+   "id": "reason2",
+   "category": "reasoning",
+   "prompt": "A fair coin is flipped 4 times. What is the probability of exactly 2 heads? Give a fraction in lowest terms.\n\nGive your final answer on the last line exactly as: ANSWER: <answer>",
+   "score": 1.0,
+   "fails": []
+  },
+  {
+   "ttft_s": 6.83,
+   "wall_s": 8.28,
+   "completion_tokens": 45,
+   "prompt_tokens": 62,
+   "decode_tok_s": 30.3,
+   "reasoning_chars": 0,
+   "finish": "stop",
+   "output": "[\n  {\"name\": \"apple\", \"qty\": 3, \"price\": 0.5},\n  {\"name\": \"pear\", \"qty\": 2, \"price\": 0.75}\n]",
+   "id": "json2",
+   "category": "json",
+   "prompt": "Convert this CSV to a JSON array of objects with numeric qty and price:\n\nname,qty,price\napple,3,0.5\npear,2,0.75\n\nOutput only the JSON, no prose, no code fences.",
+   "score": 1.0,
+   "fails": []
+  },
+  {
+   "ttft_s": 6.83,
+   "wall_s": 10.53,
+   "completion_tokens": 134,
+   "prompt_tokens": 77,
+   "decode_tok_s": 35.9,
+   "reasoning_chars": 0,
+   "finish": "stop",
+   "output": "<table>\n  <thead>\n    <tr>\n      <th>Lane</th>\n      <th>Decode tok/s</th>\n      <th>TTFT s</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>NVFP4</td>\n      <td>64.0</td>\n      <td>1.54</td>\n    </tr>\n    <tr>\n      <td>EXL3</td>\n      <td>61.5</td>\n      <td>0.52</td>\n    </tr>\n  </tbody>\n</table>",
+   "id": "html2",
+   "category": "html",
+   "prompt": "Write an HTML <table> with a <thead> row of Lane, Decode tok/s, TTFT s and a <tbody> with two rows: NVFP4, 64.0, 1.54 and EXL3, 61.5, 0.52.\n\nOutput only the HTML.",
+   "score": 1.0,
+   "fails": []
+  },
+  {
+   "ttft_s": 1.86,
+   "wall_s": 14.82,
+   "completion_tokens": 156,
+   "prompt_tokens": 50,
+   "decode_tok_s": 12.0,
+   "reasoning_chars": 0,
+   "finish": "stop",
+   "output": "Meet the workstation that fits on your desk but thinks like a data center. With 128 GB of unified memory, the CPU and GPU share a single pool of high-bandwidth memory, so you can run 70B-parameter language models locally, juggle massive datasets, and render complex scenes without constant swapping. The compact chassis slips into any workspace, while the efficient cooling system keeps sustained workloads quiet and stable. Multiple Thunderbolt ports, high-speed networking, and support for up to three displays make it easy to build out your setup. Whether you're fine-tuning models, editing 8K video, or compiling large codebases, this machine handles it all with headroom to spare. Local AI, serious performance, and a small footprint\u2014finally in one package.",
+   "id": "prose2",
+   "category": "prose",
+   "prompt": "Write a product description of 80 to 120 words for a compact AI workstation with 128 GB of unified memory. Do not use the words revolutionary, game-changing, or unleash.",
+   "score": 1.0,
+   "fails": []
+  },
+  {
+   "ttft_s": 0.27,
+   "wall_s": 20.5,
+   "completion_tokens": 245,
+   "prompt_tokens": 42,
+   "decode_tok_s": 12.1,
+   "reasoning_chars": 0,
+   "finish": "stop",
+   "output": "The fox had grown old in the valley, and his silver muzzle showed it. One morning, a young fox came bounding over the ridge, boasting of how he had outrun hounds, stolen hens from a sleeping farmyard, and talked his way past a trapper.\n\n\"Come with me,\" the old fox said, \"and I will show you the finest trick of all.\"\n\nHe led the young one to the edge of the farm, where a henhouse stood behind a fence, and beyond it, a dog kennel. The young fox's eyes gleamed. \"Watch closely,\" said the old fox, \"for I will do nothing at all.\"\n\nAll day they lay in the grass while hens clucked safely behind their fence. The young fox grew restless, but the old fox only smiled. At dusk, a farmer's lantern swept the yard, and the old fox finally rose.\n\n\"Now you have seen the hens, the fence, and the dog, and lost nothing for it,\" he said. \"The finest trick is knowing which tricks are not worth trying.\"\n\nThe young fox carried the lesson home, and lived long and well.\n\nMoral: Wisdom is knowing when not to act.",
+   "id": "story2",
+   "category": "narrative",
+   "prompt": "Write a 120 to 200 word fable with a talking fox. State the moral in the final sentence, starting with the word Moral:",
+   "score": 1.0,
+   "fails": []
+  },
+  {
+   "ttft_s": 1.86,
+   "wall_s": 10.23,
+   "completion_tokens": 180,
+   "prompt_tokens": 2150,
+   "decode_tok_s": 21.4,
+   "reasoning_chars": 0,
+   "finish": "stop",
+   "output": "# NVFP4 vs EXL3 for GLM-5.3-Flash on DGX Spark \u2014 Summary\n\nIn a controlled, simultaneous benchmark on two 2-node DGX Spark pairs, GLM-5.3-Flash in NVFP4 and EXL3 4-bit quantizations showed trade-offs: NVFP4 led single-stream decode (64.3 vs 61.8 tok/s), while EXL3 won peak aggregate (149.7 vs 138.6 tok/s), warm prefill (3099 vs 1055 tok/s), TTFT, and wall-to-wall latency. EXL3 also supports 4\u00d7 the context, 4.7\u00d7 the KV pool, and boots faster (13 vs 23 min). An earlier run favoring EXL3 was discarded due to NVFP4 clock-capping; quality probes tied.",
+   "id": "sum2",
+   "category": "summary",
+   "prompt": "Summarize the following report in one paragraph of at most 80 words.\n\n---\n# NVFP4 vs EXL3 for GLM-5.3-Flash on DGX Spark\n\n*2Wild fleet report \u00b7 2026-09-01 \u00b7 tonyd2wild (deploy + bench with Kai) \u00b7 published page: https://claude.ai/code/artifact/bdcc64b1-44f0-49e7-b3dc-f189d5674f7a*\n\n## TL;DR\nThe same 320B MoE, GLM-5.3-Flash, in two 4-bit quantizations, on two independent 2-node DGX Spark pairs, benched\n**at the same time in the same state** (all four nodes restarted together, clocks verified at ~2,170\u20132,190 MHz under\ndecode load), isolated from every other consumer. Single-stream decode: NVFP4 64.3 tok/s vs EXL3 61.8 tok/s (NVFP4 +4%). Peak aggregate: NVFP4 138.6 tok/s vs EXL3 149.7 tok/s (EXL3 +8%) (peaks at c3 / c4).\nPer-stream at c6: NVFP4 35.0 tok/s vs EXL3 35.8 tok/s (EXL3 +2%). Warm prefill: NVFP4 1055 tok/s vs EXL3 3099 tok/s (EXL3 +194%); TTFT NVFP4 1.54 s vs EXL3 0.52 s (EXL3 lower by 66%). Wall-to-wall at c6: NVFP4 10.09 s vs EXL3 8.95 s (EXL3 lower by 11%). EXL3 serves 4\u00d7 the\ncontext with 4.7\u00d7 the KV pool; boot to serve EXL3 13 min (local weights both nodes, warm trellis JIT cache) vs NVFP4 23 min (worker loads over NFS from head (Reddie page cache warm), TileLang cache partly warm); quality\nprobe tie. An earlier run showing EXL3 ahead on every line was discarded: NVFP4's nodes were\nclock-capped after a reboot (611\u2013728 MHz); with clocks equal the picture is the one above.\n\n## Headline (isolated, both lanes benched simultaneously, 2026-09-01 17:34:23)\n| | NVFP4 (Reddie + Spark4) | EXL3 (Bluey + Asusi) | EXL3 \u00f7 NVFP4 |\n|---|---|---|---|\n| c1 single-stream tok/s | 64.3 | 61.8 | 1.0\u00d7 |\n| peak aggregate tok/s (at c) | 138.6 (c3) | 149.7 (c4) | 1.1\u00d7 |\n| c6 aggregate tok/s | 136.3 | 125.2 | 0.9\u00d7 |\n| c6 per-stream tok/s | 35.0 | 35.8 | 1.0\u00d7 |\n| prefill tok/s (~1.5K prompt) (warm, median of last 3 of 6 sequential 1.5K prompts; first-after-boot cold sample: EXL3 2685 tok/s / NVFP4 1214 tok/s) | 1055 | 3099 | 2.9\u00d7 |\n| TTFT c1 / c6 | 1.54 s / 4.6 s | 0.52 s / 1.02 s | 3.0\u00d7 / 4.5\u00d7 lower |\n| wall-to-wall c1 / c6 (300-tok answer) | 4.98 s / 10.09 s | 5.18 s / 8.95 s | 1.0\u00d7 / 1.1\u00d7 lower |\n| c1 spread (detailed, n=5) | 62.8\u201364.7 (\u00b11.5%) | 59.8\u201361.9 (\u00b11.7%) | |\n| max context | 262,144 | 1,048,576 | 4\u00d7 |\n| KV pool (tokens) | 295,230 | 1,396,551 | 4.7\u00d7 |\n| quality probe | correct | correct | tie |\n| boot: launch \u2192 /health 200 | 23 min (worker loads over NFS from head (Reddie page cache warm), TileLang cache partly warm) | 13 min (local weights both nodes, warm trellis JIT cache) | |\n\n## Sweep c1\u2013c6 (3 rounds per level)\n| c | NVFP4 agg | per-stream | wall-to-wall | TTFT | EXL3 agg | per-stream | wall-to-wall | TTFT |\n|---|---|---|---|---|---|---|---|---|\n| 1 | 64.3 | 64.3 | 4.98 s | 1.54 s | **61.8** | **61.8** | **5.18 s** | **0.52 s** |\n| 2 | 111.1 | 55.5 | 5.76 s | 2.19 s | **92.5** | **46.5** | **6.88 s** | **0.76 s** |\n| 3 | 138.6 | 47.0 | 6.81 s | 3.36 s | **120.2** | **41.2** | **7.76 s** | **0.83 s** |\n| 4 | 111.2 | 48.5 | 6.61 s | 3.05 s | **149.7** | **37.4** | **8.55 s** | **0.88 s** |\n| 5 | 131.3 | 47.0 | 6.81 s | 3.11 s | **116.9** | **36.2** | **8.85 s** | **1.06 s** |\n| 6 | 136.3 | 35.0 | 10.09 s | 4.6 s | **125.2** | **35.8** | **8.95 s** | **1.02 s** |\n\n## Hardware and topology\nFour NVIDIA DGX Spark (GB10, sm_121a, 128 GB unified memory, ~121 GB usable) on a ConnectX-7 RoCE v2 fabric,\n192.168.192.0/24, rail 0 (`enp1s0f0np0` / `rocep1s0f0`, GID 3). Reddie (.2) heads NVFP4 with Spark4 (.4);\nBluey (.1) heads EXL3 with Asusi (.3). Both lanes TP=2 across two nodes (vLLM mp executor, NCCL over RoCE);\nthey share nothing but the switch. Bench client: a Mac mini on the same tailnet.\n\n**Clock state matters on GB10.** An earlier run was thrown out: after a reboot, Reddie and Spark4 came up pinned at\n611\u2013728 MHz SM clock under load (EXL3's nodes ran ~2,500) and NVFP4 measured 36 tok/s with a perfect 92\u2013100 % draft\nacceptance. All four were restarted together and verified under real decode load before this run: healthy GB10s here\nsettle at ~2,170\u20132,180 MHz at ~96 % utilization. Check `nvidia-smi --query-gpu=clocks.sm` under load after any\nSpark reboot before trusting a throughput number.\n\n## The two lanes\n**NVFP4 (reference).** The published 2-Spark recipe run verbatim: weights `RedHatAI/GLM-5.3-Flash-NVFP4`; image\n`ghcr.io/tonyd2wild/vllm-glm53-flash:sm121-v11-dflash2`; `--max-model-len 262144 --gpu-memory-utilization 0.85\n--kv-cache-memory 3 GiB --max-num-seqs 6 --max-num-batched-tokens 8192 --block-size 2304 --moe-backend marlin\n--kv-cache-dtype fp8_e4m3 --enforce-eager`; DFlash2 drafter k=7 (92\u2013100 % draft acceptance on structured output);\n`vm.swappiness=0`; worker first, head 25 s later.\n\n**EXL3 (challenger).** Reederey87's GB10 kit (MiaAI-Lab's sibling as cross-reference) built for our fabric: weights\n`brandonmusic/GLM-5.3-Flash-tr3-4bpw` (EXL3/TR3, 4 bpw, 120 shards, ~164 GiB, ~91 GiB resident per node);\nexllamav3 compiled for `12.1a`; `--quantization exl3 --max-model-len 1000000 --gpu-memory-utilization 0.85\n--kv-cache-memory-bytes 15414698763 --max-num-seqs 4 --max-num-batched-tokens 3584 --kv-cache-dtype fp8\n--no-async-scheduling`; same DFlash2 drafter k=7. Both lanes: fp8 KV, thinking off, multimodal chat template,\nnative `image_url` (a red square came back \"Red\" on both).\n\n## Method\n**Isolation.** Relay parked on the 3090 27B, latency dashboard paused (it sends real probe completions), the three\nHermes supervisors that default to `glm-5.3-flash` moved to the 27B; after each run the head's access log shows chat\nPOSTs from the bench client only, with counts matching ",
+   "score": 0.0,
+   "fails": [
+    "words 97 in 20-80",
+    "paragraphs=1"
+   ]
+  },
+  {
+   "ttft_s": 10.81,
+   "wall_s": 12.17,
+   "completion_tokens": 56,
+   "prompt_tokens": 72,
+   "decode_tok_s": 40.4,
+   "reasoning_chars": 0,
+   "finish": "stop",
+   "output": "| Lane | Context | KV pool |\n|------|---------|---------|\n| NVFP4 | 262,144 | 295,230 |\n| EXL3 | 1,048,576 | 1,396,551 |",
+   "id": "fmt2",
+   "category": "format",
+   "prompt": "Output a markdown table with the columns Lane | Context | KV pool and two rows: NVFP4 with 262,144 and 295,230; EXL3 with 1,048,576 and 1,396,551. Output nothing else.",
+   "score": 1.0,
+   "fails": []
+  },
+  {
+   "ttft_s": 0.52,
+   "wall_s": 2.29,
+   "completion_tokens": 46,
+   "prompt_tokens": 49,
+   "decode_tok_s": 25.4,
+   "reasoning_chars": 0,
+   "finish": "stop",
+   "output": "```python\ndef top_k_frequent(words, k):\n    from collections import Counter\n    counts = Counter(words)\n    return sorted(counts.keys(), key=lambda w: (-counts[w], w))[:k]\n```",
+   "id": "code3",
+   "category": "coding",
+   "prompt": "Write a Python function top_k_frequent(words, k) returning the k most frequent words, most frequent first; ties broken alphabetically. Return only one ```python code block.",
+   "score": 1.0,
+   "fails": []
+  },
+  {
+   "ttft_s": 1.65,
+   "wall_s": 7.48,
+   "completion_tokens": 176,
+   "prompt_tokens": 57,
+   "decode_tok_s": 30.0,
+   "reasoning_chars": 0,
+   "finish": "stop",
+   "output": "Let me work through the finishing order.\n\n**Given clues:**\n1. Dee finishes before Eve but after Cal \u2192 Cal < Dee < Eve\n2. Bo finishes last (5th)\n3. Al finishes before Cal \u2192 Al < Cal\n\n**Building the order:**\n\nFrom clue 3, Al comes before Cal. From clue 1, Cal comes before Dee, who comes before Eve. So we have:\n\nAl \u2192 Cal \u2192 Dee \u2192 Eve\n\nFrom clue 2, Bo is last (5th), so Bo must fit into the remaining spot \u2014 the 4th position, after Eve.\n\n**Final order:**\n1. Al\n2. Cal\n3. Dee\n4. Eve\n5. Bo\n\n**Checking:** Al before Cal \u2713, Cal before Dee before Eve \u2713, Bo last \u2713\n\nDee finishes third.\n\nANSWER: Dee",
+   "id": "reason3",
+   "category": "reasoning",
+   "prompt": "Five runners finish a race. Dee finishes before Eve but after Cal. Bo finishes last. Al finishes before Cal. Who finishes third?\n\nGive your final answer on the last line exactly as: ANSWER: <answer>",
+   "score": 1.0,
+   "fails": []
+  },
+  {
+   "ttft_s": 0.52,
+   "wall_s": 1.12,
+   "completion_tokens": 21,
+   "prompt_tokens": 57,
+   "decode_tok_s": 33.0,
+   "reasoning_chars": 0,
+   "finish": "stop",
+   "output": "{\"user\": \"sam\", \"tags\": [\"a\", \"b\"], \"active\": true}",
+   "id": "json3",
+   "category": "json",
+   "prompt": "Fix this invalid JSON and output only the corrected JSON:\n\n{'user': 'sam', 'tags': ['a', 'b',], 'active': True}\n\nOutput only the JSON, no prose, no code fences.",
+   "score": 1.0,
+   "fails": []
+  },
+  {
+   "ttft_s": 0.52,
+   "wall_s": 4.06,
+   "completion_tokens": 129,
+   "prompt_tokens": 67,
+   "decode_tok_s": 36.2,
+   "reasoning_chars": 0,
+   "finish": "stop",
+   "output": "```html\n<form>\n  <label for=\"email\">Email</label>\n  <input type=\"email\" id=\"email\" name=\"email\" required>\n\n  <label for=\"lane\">Lane</label>\n  <select id=\"lane\" name=\"lane\">\n    <option value=\"NVFP4\">NVFP4</option>\n    <option value=\"EXL3\">EXL3</option>\n  </select>\n\n  <label for=\"notes\">Notes</label>\n  <textarea id=\"notes\" name=\"notes\"></textarea>\n\n  <button type=\"submit\">Submit</button>\n</form>\n```",
+   "id": "html3",
+   "category": "html",
+   "prompt": "Write an HTML <form> with: a required email input with id=\"email\", a <select id=\"lane\"> with the options NVFP4 and EXL3, a <textarea id=\"notes\">, and a submit <button>.\n\nOutput only the HTML.",
+   "score": 1.0,
+   "fails": []
+  },
+  {
+   "ttft_s": 1.75,
+   "wall_s": 8.76,
+   "completion_tokens": 145,
+   "prompt_tokens": 35,
+   "decode_tok_s": 20.5,
+   "reasoning_chars": 0,
+   "finish": "stop",
+   "output": "Subject: Re: Meeting Request \u2013 Availability Next Week\n\nHi [Name],\n\nThank you for reaching out and for the meeting request. Unfortunately, I'm unable to attend at the proposed time due to a prior commitment.\n\nI'd be happy to connect next week instead. Would either of the following times work for you?\n\n- **Tuesday, [date], 10:00\u201310:30 AM**\n- **Thursday, [date], 2:00\u20132:30 PM**\n\nIf neither of these works, please feel free to suggest a couple of alternatives, and I'll do my best to accommodate.\n\nThank you for your understanding, and I look forward to speaking with you.\n\nBest regards,\n[Your Name]",
+   "id": "prose3",
+   "category": "prose",
+   "prompt": "Write a professional email under 150 words politely declining a meeting request and proposing two specific alternative times next week.",
+   "score": 1.0,
+   "fails": []
+  },
+  {
+   "ttft_s": 3.03,
+   "wall_s": 28.91,
+   "completion_tokens": 477,
+   "prompt_tokens": 50,
+   "decode_tok_s": 18.4,
+   "reasoning_chars": 0,
+   "finish": "stop",
+   "output": "The number's wrong. It has to be.\n\n\"Which part? The p99 or the throughput?\"\n\n\"The p99. There's no way we went from 40 milliseconds to 12. That's not an improvement, that's a category error.\"\n\n\"Or the new allocator actually works.\"\n\n\"The allocator doesn't work. The allocator has never worked. I spent three weeks on that allocator.\"\n\n\"Then maybe your three weeks finally paid off.\"\n\n\"Run it again.\"\n\n\"I ran it four times.\"\n\n\"Run it a fifth time.\"\n\nThe keyboard clatters in the dark. Both of them watch the terminal like it's a bomb.\n\n\"Same number.\"\n\n\"That's impossible.\"\n\n\"It's the same number, Dev. Twelve point one.\"\n\n\"Something's caching. The results have to be caching.\"\n\n\"Where? I cleared the page cache. I dropped the OS buffers. I rebuilt from a clean checkout.\"\n\n\"You rebuilt?\"\n\n\"Twice.\"\n\nDev pulls the chair closer and scrolls through the flame graph. \"Okay. Okay, wait. Look at this. The hot path is empty.\"\n\n\"Empty how?\"\n\n\"Empty empty. There's nothing there. Where did the work go?\"\n\n\"Maybe the work is happening somewhere else now. Off the critical path.\"\n\n\"Work doesn't just move, Priya. Work doesn't\u2014\"\n\n\"Work moves all the time. That's the whole point of the last six months.\"\n\n\"Then explain the flame graph.\"\n\n\"I can't explain the flame graph. I can explain the benchmark.\"\n\n\"Explain it, then.\"\n\n\"We moved the serialization off the hot path. We batched the writes. We\u2014\"\n\n\"We batched the writes. Right. And what happens to the batch when the queue fills up?\"\n\n\"It flushes.\"\n\n\"And when it can't flush?\"\n\nPriya stops scrolling. \"It waits.\"\n\n\"It waits. So we didn't make anything faster. We just made the slowness someone else's problem.\"\n\n\"Until the queue fills up.\"\n\n\"Right. Under real load\u2014\"\n\n\"Under real load, the p99 is garbage.\"\n\nThey sit in silence. Somewhere down the hall, a server rack hums.\n\n\"So we delete the benchmark.\"\n\n\"We delete the benchmark.\"\n\n\"And the three weeks on the allocator?\"\n\n\"Tell them it was a learning experience.\"\n\n\"It was not a learning experience.\"\n\n\"It was for me.\"",
+   "id": "story3",
+   "category": "narrative",
+   "prompt": "Write a 200 to 300 word scene: two engineers arguing at 2 a.m. about a benchmark result. Mostly dialogue; no narration longer than one sentence at a time.",
+   "score": 0.5,
+   "fails": [
+    "words 337 in 200-300"
+   ]
+  },
+  {
+   "ttft_s": 1.74,
+   "wall_s": 5.46,
+   "completion_tokens": 69,
+   "prompt_tokens": 2418,
+   "decode_tok_s": 18.3,
+   "reasoning_chars": 0,
+   "finish": "stop",
+   "output": "The text says that on a 12-item reasoning battery, the two 4-bit quantizations scored identically\u201411/12 with thinking off (missing the same item) and 12/12 with thinking on\u2014leading the author to conclude that \"quality is a tie\" and that quantization did not change the model's intelligence.",
+   "id": "sum3",
+   "category": "summary",
+   "prompt": "In exactly two sentences, summarize what the following text says about quality.\n\n---\nNVFP4 vs EXL3 on DGX Spark: same model, same boxes, same minute\n\nGLM-5.3-Flash, two 4-bit quants, two 2-node lanes of DGX Spark, benched simultaneously from c1 to c6. Time to first token, prefill, decode, wall-to-wall, context, KV pool, boot time, and a 12-item reasoning battery with thinking off and on.\n\n[IMAGE: card_nvfp4_vs_exl3.png]\n\n\nTHE SHORT VERSION\n\nSplit decision.\n\n\u2022 NVFP4 decodes faster. 64.0 vs 61.5 tok/s single stream (+4%), +14 to 30% per stream at c2 to c5, higher aggregate at 5 of 6 concurrency levels, faster wall-to-wall through c5.\n\n\u2022 EXL3 answers first. Warm time to first token 0.52 s vs 1.54 s at c1 and 1.0 s vs 4.6 s at c6. Prefill 3,099 vs 1,055 tok/s (2.9x). 1M context and a 1.40M-token KV pool vs 256K and 295K on the same two boxes. Boots to serving in 13 min vs 23.\n\n\u2022 Quality is a tie. 12-item reasoning battery: 11/12 vs 11/12 with thinking off (same miss), 12/12 vs 12/12 with thinking on. The quant did not change how smart the model is.\n\n\u2022 Our first run said EXL3 won everything. It was wrong. Two of the four Sparks were clock-capped at roughly 700 MHz after a reboot. We caught it, restarted all four, and ran the entire test again. Every number here is from the second run.\n\n\nWHAT WE SERVED\n\nLane 1, NVFP4 (Reddie + Spark4)\n\u2022 Weights: RedHatAI/GLM-5.3-Flash-NVFP4\n\u2022 Runtime: vLLM, image ghcr.io/tonyd2wild/vllm-glm53-flash:sm121-v11-dflash2, the published 2-Spark recipe run verbatim\n\u2022 Context: 262,144. KV pool: 295,230 tokens. KV dtype fp8_e4m3, MoE backend marlin\n\u2022 Speculative decode: DFlash2 k=7. Graphs: enforce-eager. max-num-seqs 6\n\nLane 2, EXL3 (Bluey + Asusi)\n\u2022 Weights: brandonmusic/GLM-5.3-Flash-tr3-4bpw (EXL3 / TR3 4bpw)\n\u2022 Runtime: vLLM + exllamav3 built for sm_121a, Reederey87's 2-Spark kit\n\u2022 Context: 1,048,576. KV pool: 1,396,551 tokens. KV dtype fp8 (fp8_ds_mla), MoE exl3_moe trellis\n\u2022 Speculative decode: DFlash2 k=7. Graphs: enforce-eager. max-num-seqs 4 (this caps c5 and c6; it is config, not the quant)\n\nHardware: 4x NVIDIA DGX Spark (GB10, sm_121a, 128 GB unified memory), ConnectX-7 RoCE v2 fabric, two boxes per lane, tensor parallel 2, vLLM multiprocess executor. Bench client on a Mac mini over Tailscale.\n\n\nHOW WE MEASURED\n\n\u2022 Isolation. Before measuring, every other consumer was moved off both lanes: the relay our agents use was parked on a different model, the coding-latency monitor that sends real probe completions was paused, and the three supervisor agents that default to this model were moved to a 27B on another box. We then proved it from each head's access log: NVFP4 head 128 chat requests in the window, all from the bench client; EXL3 head 129 from the bench client, and the only other traffic in the 30-minute log window was the kit's own post-serve warm-up burst of 15 requests, fifteen minutes before the tests began. Zero outside requests on either lane during the test.\n\n\u2022 Simultaneity. Both lanes were benched in parallel, same minute, same state. They share no GPUs, memory, or NCCL group.\n\n\u2022 Warm-up. Both engines JIT-compile kernels per request shape. We warmed each lane with 2x c1 and 1x c6 before measuring. A cold lane is not the lane's speed: EXL3's first-ever long prefill ran at 430 tok/s, warm it runs at 3,099.\n\n\u2022 Clocks. Healthy GB10 decode sits near 2,180 MHz at 95% utilization. After a reboot, two nodes were pinned at 611 to 728 MHz under load. We checked all four under a real request before this run: 2,171 to 2,190 MHz.\n\n\u2022 Settings. Non-streaming, temperature 0, thinking off for the speed tests, roughly 300-token answers. Sweep: 3 rounds per concurrency level, medians. Single-stream: 5 rounds. Prefill: a 1,623-token prompt, warm median of the last 3 of 6.\n\n\nDECODE AND CONCURRENCY, c1 TO c6\n\n[IMAGE: chart_agg.png]\n\nAggregate throughput, tokens per second (NVFP4 vs EXL3)\n\u2022 c1: 64.3 vs 61.8\n\u2022 c2: 111.1 vs 92.5\n\u2022 c3: 138.6 vs 120.2\n\u2022 c4: 111.2 vs 149.7\n\u2022 c5: 131.3 vs 116.9\n\u2022 c6: 136.3 vs 125.2\n\nPer-stream decode, tokens per second per request (NVFP4 vs EXL3)\n\u2022 c1: 64.3 vs 61.8\n\u2022 c2: 55.5 vs 46.5\n\u2022 c3: 47.0 vs 41.2\n\u2022 c4: 48.5 vs 37.4\n\u2022 c5: 47.0 vs 36.2\n\u2022 c6: 35.0 vs 35.8\n\nNVFP4 leads aggregate at five of six levels and per-stream at c1 to c5. The one exception is c4, where NVFP4 has a reproducible dip (111.2) and EXL3 posts its peak (149.7). At c6 the two converge per stream (35.0 vs 35.8), partly because EXL3's max-num-seqs of 4 caps it above c4.\n\nSingle-stream, 5 rounds: NVFP4 64.0 tok/s (62.8 to 64.7, spread \u00b11.5%). EXL3 61.5 tok/s (59.8 to 61.9, spread \u00b11.7%). Both stable.\n\nAggregate at c6, 3 rounds: NVFP4 135.6, EXL3 124.7. Per stream at c6: 34.5 vs 36.1.\n\n\nTIME TO FIRST TOKEN AND PREFILL\n\n[IMAGE: chart_ttft.png]\n\nTime to first token, seconds, median (NVFP4 vs EXL3)\n\u2022 c1 (warm): 1.54 vs 0.52\n\u2022 c2: 2.19 vs 0.76\n\u2022 c3: 3.36 vs 0.83\n\u2022 c4: 3.05 vs 0.88\n\u2022 c5: 3.11 vs 1.06\n\u2022 c6: 4.60 vs 1.02\n\nPrefill on a 1,623-token prompt, warm: NVFP4 1,055 tok/s, EXL3 3,099 tok/s. EXL3 is 2.9x faster into the first token, and the gap widens under load: at c6 NVFP4 waits 4.6 s for the first token, EXL3 1.0 s. This is the metric that decides how an agent feels to use.\n\n\nWALL-TO-WALL\n\n[IMAGE: chart_w2w.png]\n\nWall-to-wall for a 300-token answer, seconds, median (NVFP4 vs EXL3)\n\u2022 c1: 4.98 vs 5.18\n\u2022 c2: 5.76 vs 6.88\n\u2022 c3: 6.81 vs 7.76\n\u2022 c4: 6.61 vs 8.55\n\u2022 c5: 6.81 vs 8.85\n\u2022 c6: 10.09 vs 8.95\n\nFaster decode wins the full answer for NVFP4 at c1 to c5. At c6, EXL3's 3.6 s first-token advantage outweighs NVFP4's decode lead and EXL3 finishes first.\n\n\nCONTEXT, KV POOL, BOOT\n\n\u2022 Context that booted: NVFP4 262,144. EXL3 1,048,576 (4x).\n\u2022 KV pool: NVFP4 295,230 tokens. EXL3 1,396,551 tokens (4.7x).\n\u2022 Boot, launch command to first healthy response: NVFP4 23 min (worker loads its weights over NFS from the head). EXL3 13 min (local weights on both nodes, warm trellis JIT cache).\n\nThe NVFP4 recipe cannot boot at 1M context on these two boxes; there is not enough room left for the KV pool. We learned that the hard way and it is why the recipe pins 256K.\n\n\nQUALITY: DOES THE QUANT CHANGE HOW SMART IT IS?\n\nProbe. Same prompt to both, thinking off, temperature 0: write top-k-frequent in O(n log k) with an explanation and an edge case, plus the bat-and-ball trap. Both correct, both answered $0.05 with a check line.\n\nBattery. Twelve auto-graded items with checkable final answers: three multi-step math word problems, three logic puzzles, two code items (predict the output, fix the one-line bug), a leap-year rule, the bat-and-ball trap, and two strict-format tasks (exact JSON, reversed string). Identical prompts to both lanes, temperature 0, run twice: thinking off (direct answer) and thinking on (the model reasons first).\n\nAccuracy (NVFP4 vs EXL3)\n\u2022 Thinking off: 11/12 vs 11/12. Same single miss on both: reversing the word \"benchmark\".\n\u2022 Thinking on: 12/12 vs 12/12. Every item finished naturally, none hit the token limit.\n\u2022 By category, thinking off: math 3/3 vs 3/3, logic 3/3 vs 3/3, code 2/2 vs 2/2, knowledge 1/1 vs 1/1, reasoning 1/1 vs 1/1, format 1/2 vs 1/2.",
+   "score": 0.0,
+   "fails": [
+    "sentences=2"
+   ]
+  },
+  {
+   "ttft_s": 1.74,
+   "wall_s": 2.52,
+   "completion_tokens": 10,
+   "prompt_tokens": 46,
+   "decode_tok_s": 11.6,
+   "reasoning_chars": 0,
+   "finish": "stop",
+   "output": "dog lazy the over jumps fox brown quick the",
+   "id": "fmt3",
+   "category": "format",
+   "prompt": "Reply with the sentence 'The quick brown fox jumps over the lazy dog' with the words in reverse order, all lowercase, no punctuation. Output only the result.",
+   "score": 1.0,
+   "fails": []
+  },
+  {
+   "ttft_s": 7.67,
+   "wall_s": 10.13,
+   "completion_tokens": 82,
+   "prompt_tokens": 117,
+   "decode_tok_s": 32.9,
+   "reasoning_chars": 0,
+   "finish": "stop",
+   "output": "```python\ndef binary_search(a, target):\n    lo, hi = 0, len(a)\n    while lo < hi:\n        mid = (lo + hi) // 2\n        if a[mid] == target:\n            return mid\n        if a[mid] < target:\n            lo = mid + 1\n        else:\n            hi = mid\n    return -1\n```",
+   "id": "code4",
+   "category": "coding",
+   "prompt": "This binary search has a bug that can make it loop forever. Return the corrected function only, as one ```python code block, same name and signature.\n\ndef binary_search(a, target):\n    lo, hi = 0, len(a)\n    while lo < hi:\n        mid = (lo + hi) // 2\n        if a[mid] == target:\n            return mid\n        if a[mid] < target:\n            lo = mid\n        else:\n            hi = mid\n    return -1",
+   "score": 1.0,
+   "fails": []
+  },
+  {
+   "ttft_s": 9.07,
+   "wall_s": 13.85,
+   "completion_tokens": 161,
+   "prompt_tokens": 77,
+   "decode_tok_s": 33.5,
+   "reasoning_chars": 0,
+   "finish": "stop",
+   "output": "# The Classic Bird Problem\n\n## Setting Up\n\nThe key insight: instead of tracking each back-and-forth trip, find **how long** the bird flies.\n\n## Finding the Time\n\nThe trains approach each other, so their combined closing speed is:\n$$70 + 80 = 150 \\text{ km/h}$$\n\nTime until they meet:\n$$t = \\frac{300 \\text{ km}}{150 \\text{ km/h}} = 2 \\text{ hours}$$\n\n## The Bird's Distance\n\nThe bird flies continuously for those same 2 hours at 120 km/h:\n$$d = 120 \\text{ km/h} \\times 2 \\text{ h} = 240 \\text{ km}$$\n\nANSWER: 240 km",
+   "id": "reason4",
+   "category": "reasoning",
+   "prompt": "Two trains 300 km apart travel toward each other at 70 km/h and 80 km/h. A bird flying at 120 km/h goes back and forth between them until they meet. How many km does the bird fly?\n\nGive your final answer on the last line exactly as: ANSWER: <answer>",
+   "score": 1.0,
+   "fails": []
+  },
+  {
+   "ttft_s": 7.67,
+   "wall_s": 8.5,
+   "completion_tokens": 24,
+   "prompt_tokens": 80,
+   "decode_tok_s": 27.6,
+   "reasoning_chars": 0,
+   "finish": "stop",
+   "output": "{\"Oslo\": 4, \"Cairo\": 31, \"Lima\": 19.5}",
+   "id": "json4",
+   "category": "json",
+   "prompt": "Return a JSON object mapping each city to the arithmetic mean of its temperatures:\n\n{\"Oslo\": [2, 4, 6], \"Cairo\": [30, 32], \"Lima\": [18, 19, 20, 21]}\n\nOutput only the JSON, no prose, no code fences.",
+   "score": 1.0,
+   "fails": []
+  },
+  {
+   "ttft_s": 7.67,
+   "wall_s": 10.63,
+   "completion_tokens": 95,
+   "prompt_tokens": 68,
+   "decode_tok_s": 31.7,
+   "reasoning_chars": 0,
+   "finish": "stop",
+   "output": "```html\n<a href=\"#main\" class=\"skip\">Skip to content</a>\n<nav aria-label=\"Main\">\n  <ul>\n    <li><a href=\"/\">Home</a></li>\n    <li><a href=\"/about\">About</a></li>\n    <li><a href=\"/services\">Services</a></li>\n    <li><a href=\"/contact\">Contact</a></li>\n  </ul>\n</nav>\n```",
+   "id": "html4",
+   "category": "html",
+   "prompt": "Write an accessible site navigation: a skip link <a href=\"#main\" class=\"skip\">Skip to content</a>, then <nav aria-label=\"Main\"> containing a <ul> of four <li> items each with an <a>.\n\nOutput only the HTML.",
+   "score": 1.0,
+   "fails": []
+  },
+  {
+   "ttft_s": 1.44,
+   "wall_s": 21.71,
+   "completion_tokens": 257,
+   "prompt_tokens": 38,
+   "decode_tok_s": 12.6,
+   "reasoning_chars": 0,
+   "finish": "stop",
+   "output": "# Against Benchmarking Language Models with Synthetic Prompts\n\nBenchmarking language models with synthetic prompts\u2014machine-generated inputs rather than authentic human queries\u2014fundamentally misrepresents real-world performance. I argue against this practice.\n\nThe core problem is distribution mismatch. Synthetic prompts are generated by models trained on human text, so they inherit the biases and stylistic regularities of their generators while lacking the messiness, ambiguity, and contextual richness of genuine human communication. A model can excel on synthetic benchmarks while failing on the idiosyncratic, typo-laden, emotionally complex queries real users actually pose.\n\nSynthetic benchmarks also suffer from circularity and contamination. When the same model family generates both the benchmark and the responses, evaluations risk measuring shared training data rather than genuine capability. Worse, benchmark creators often use models to generate \"hard\" cases, but these adversarial examples may test pattern-matching on artificial edge cases rather than robust reasoning.\n\nFinally, synthetic benchmarks are easily gamed. Because they're generated by predictable processes, models can be tuned\u2014intentionally or not\u2014to exploit their regularities, inflating scores without improving real utility.\n\nHuman evaluation on authentic queries remains the gold standard. Synthetic benchmarks offer convenience, but convenience at the cost of validity is a poor trade.",
+   "id": "prose4",
+   "category": "prose",
+   "prompt": "In 150 to 200 words, argue for or against benchmarking language models with synthetic prompts. Take one side clearly.",
+   "score": 1.0,
+   "fails": []
+  },
+  {
+   "ttft_s": 1.44,
+   "wall_s": 19.74,
+   "completion_tokens": 188,
+   "prompt_tokens": 42,
+   "decode_tok_s": 10.2,
+   "reasoning_chars": 0,
+   "finish": "stop",
+   "output": "The emergency lights bleed red across the server racks. You move through the aisles, your flashlight beam trembling slightly\u2014yours, not the light's. Somewhere in row twelve, a machine is still humming, stubborn and alive while everything else has gone dark.\n\nYou find it: the backup array, holding its last breath of data. Your phone shows 4:17 a.m. The generators failed twenty minutes ago. Whatever this machine is protecting, it's losing time.\n\nYour hand hovers over the emergency shutdown. One press and the data saves cleanly, preserved in perfect order. But you hesitate, because the logs on your screen show something impossible\u2014queries arriving from an address that doesn't exist, requests formatted in a protocol you've never seen.\n\nSomething in the dark is still talking to it.\n\nYou press the button anyway. The hum dies.\n\nIn the silence, you almost miss it: a single light, blinking.",
+   "id": "story4",
+   "category": "narrative",
+   "prompt": "Write a 100 to 150 word micro-story told entirely in second person, present tense, set in a data center during a power outage.",
+   "score": 1.0,
+   "fails": []
+  },
+  {
+   "ttft_s": 1.44,
+   "wall_s": 10.14,
+   "completion_tokens": 205,
+   "prompt_tokens": 1923,
+   "decode_tok_s": 23.4,
+   "reasoning_chars": 0,
+   "finish": "stop",
+   "output": "- **What:** Private deploy notes and launch kit for running GLM-5.3-Flash as an EXL3/TR3 4bpw quant across two NVIDIA DGX Spark (GB10) nodes over RoCE, with TP2, a DFlash2 speculative drafter, and 1M context.\n- **How:** Builds the `exllamav3` image from source for sm_121a/arm64, configures `.env` with node IPs and RoCE NIC/GID settings, and launches via `prod-start.sh` on the head node \u2014 with hard requirements like fp8 KV cache, no marlin backend, and ~180 GiB free per node.\n- **Credits:** Built on Reederey87's GB10-hardened 2-Spark repo and MiaAI-Lab's parallel recipe/image, plus brandonmusic (quant weights), turboderp (ExLlamaV3), IncoAI (drafter), and zai-org (base model).",
+   "id": "sum4",
+   "category": "summary",
+   "prompt": "Summarize the following README in 3 bullets labeled What, How, Credits.\n\n---\n# GLM-5.3-Flash EXL3 on 2x NVIDIA DGX Spark (GB10 / sm_121)\n\nPrivate deploy notes + launch kit for running **GLM-5.3-Flash** as an **EXL3 / TR3 4bpw**\nquant across **two DGX Spark (GB10, sm_121a)** boxes over a RoCE fabric, TP2, with a\nDFlash2 speculative drafter and 1M context.\n\nThis repo documents *our* bring-up on the 2Wild Spark cluster (nodes **Bluey** + **Asusi**).\nIt stands on the shoulders of the people credited below \u2014 start with their repos; this is\nthe delta that made it run on our hardware.\n\n> Status: private. Internal 2Wild infra notes. Do not distribute the credential-bearing\n> `.env` (only `.env.example` is committed).\n\n---\n\n## Why EXL3 here\n\nWe already run GLM-5.3-Flash in **NVFP4** (marlin, fp8 KV) on the 4-Spark ring. EXL3\n(turboderp's ExLlamaV3, trellis / QTIP quant) trades a bit of engine complexity for\n**materially better quality per bit**:\n\n| Quant | bits | KLD vs FP16 | Notes |\n|-------|------|-------------|-------|\n| FP8   | 8    | ~0.025      | reference-ish, 2x the bytes |\n| **EXL3 / TR3** | **~4** | **~0.025** | ties FP8 quality at ~half the bytes |\n| NVFP4 | ~4   | ~0.060      | faster kernels, more quant drift |\n\nThe difference is not casual chat \u2014 it shows up on hard code, multi-step reasoning,\ntool-calling accuracy, and long-context coherence. Speed is roughly a wash single-stream on\nGB10; EXL3 tends to edge ahead in aggregate throughput at concurrency. We keep both lanes and\nbench head-to-head (see `BENCH.md`).\n\n---\n\n## Topology (our cluster)\n\n```\nReddie  (192.168.192.2)  <- GLM-5.3-Flash NVFP4 TP2 head, serves :8000 (unchanged endpoint)\nSpark4  (192.168.192.4)  <- NVFP4 TP2 worker\nBluey   (192.168.192.1)  <- EXL3 head  (this repo) serves :8000 on Bluey\nAsusi   (192.168.192.3)  <- EXL3 worker (this repo)\n```\n\nRoCE: **rail 0** on both EXL3 nodes \u2014 `rocep1s0f0` / `enp1s0f0np0`, **GID index 3**\n(carries `::ffff:192.168.192.x`). Symmetric on head + worker.\n\n> \u26a0\ufe0f The upstream kits default to an **asymmetric** rail (head `f1`, worker `f0`) for their\n> hardware. On our Sparks `f1` is DOWN and `f0` is the active CX7 port on every node, so we\n> pin **both** head and worker to `f0` / gid3. Verify your own NICs before copying our `.env`:\n> ```bash\n> cat /sys/class/infiniband/rocep1s0f0/ports/1/state          # want: ACTIVE\n> cat /sys/class/infiniband/rocep1s0f0/ports/1/gids/3         # want: ...ffff:<your fabric ip>\n> ```\n\n---\n\n## The model\n\n- **Weights:** [`brandonmusic/GLM-5.3-Flash-tr3-4bpw`](https://huggingface.co/brandonmusic/GLM-5.3-Flash-tr3-4bpw)\n  \u2014 GLM-5.3-Flash 320B MoE / 18B active, EXL3/TR3 4bpw, 120 shards (~164 GiB, ~82 GiB resident/node).\n  Mirror: [`Mia-AiLab/GLM-5.3-Flash-EXL3-TR3-4bpw`](https://huggingface.co/Mia-AiLab/GLM-5.3-Flash-EXL3-TR3-4bpw).\n- **Speculative drafter:** [`incoai/GLM-5.3-Flash-DFlash2`](https://huggingface.co/incoai/GLM-5.3-Flash-DFlash2)\n  (rev `7d74cdd881ed7e32c31175984a67823127b66cfe`, ~2.3 GiB), k=7.\n- **Base model:** GLM-5.3-Flash by zai-org.\n\n`HF_HUB_DISABLE_XET=1` when pulling (Xet resolver flakes on these repos).\n\n---\n\n## The image\n\nGB10 is `sm_121a`, arm64, CUDA 13. There is no stock EXL3 wheel for it, so the image builds\n`exllamav3` from source with `TORCH_CUDA_ARCH_LIST=12.1a` on top of the arm64 vLLM base.\n\n```bash\ndocker build -t glm53-flash-sm121:local .\n```\n\nWe build locally (`IMAGE=glm53-flash-sm121:local`, `SKIP_PULL=1`) rather than pulling the\nGHCR image, so the sm_121a cubins match our exact driver/toolkit.\n\n---\n\n## Launch\n\n1. `cp .env.example .env` and set node IPs, `WORKER_SSH`, and the RoCE NIC/GID for **your** fabric.\n2. Head node runs `local/prod-start.sh` \u2014 it gates on `MemFree >= 90 GiB`, starts the worker over\n   SSH `--headless`, then the head + API server.\n3. First boot after a cache wipe does a **long cold JIT** (trellis kernels compile). This is slow,\n   not dead \u2014 `READY_TIMEOUT=4800`. Watch the head log; workers should be at >0% GPU while compiling.\n\n```bash\n./local/prod-start.sh          # head; brings up worker over SSH\ncurl -s http://192.168.192.1:8000/v1/models   # -> GLM-5.3-Flash-EXL3\n```\n\n### Non-negotiables (learned the hard way, ours + upstream)\n- **KV cache MUST be `fp8`** (`fp8_ds_mla`). Never bf16/NVFP4 KV with EXL3 here.\n- **Never `--moe-backend marlin`** \u2014 that's the NVFP4 path; it corrupts EXL3.\n- `--quantization exl3`, `--max-model-len 1000000`, `gmu 0.85` (0.87 crash-loops under the KV pin),\n  `--max-num-seqs 4`, MNBT 3584, `--kv-cache-memory-bytes` pinned, `--no-async-scheduling`.\n- Need ~180 GiB free/node before boot.\n\n---\n\n## Uncensored (optional)\n\n`ABLIT=1` opts into an abliterated variant (transplant from the drowzeys ablit lineage). Off by default.\n\n---\n\n## Credits\n\nThis deploy would not exist without:\n\n- **[Reederey87](https://github.com/Reederey87/glm53-flash-exl3-2x-dgx-spark)** \u2014 the GB10-hardened\n  2-Spark EXL3 repo we followed end to end (Dockerfile, prod-start gating, RoCE rail guidance).\n- **[MiaAI-Lab](https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks)** \u2014 parallel 2-Spark\n  recipe + the GHCR image + the weights mirror.\n- **brandonmusic** \u2014 the `GLM-5.3-Flash-tr3-4bpw` EXL3 quant (ShapleyMCG License).\n- **[turboderp](https://github.com/turboderp/exllamav3)** \u2014 ExLlamaV3 / the EXL3 format itself.\n- **IncoAI** \u2014 the `GLM-5.3-Flash-DFlash2` speculative drafter.\n- **zai-org** \u2014 GLM-5.3-Flash base model.\n- **malaiwah**, **drowzeys** \u2014 surrounding tooling / abliteration lineage.\n\nOur contribution: the symmetric rail-0/gid3 pin for a fabric where `f1` is dead, the loca",
+   "score": 1.0,
+   "fails": []
+  },
+  {
+   "ttft_s": 10.64,
+   "wall_s": 13.36,
+   "completion_tokens": 26,
+   "prompt_tokens": 36,
+   "decode_tok_s": 9.2,
+   "reasoning_chars": 0,
+   "finish": "stop",
+   "output": "Because cached file pages would otherwise be evicted during loading anyway, wasting time; freeing them first avoids churn and speeds allocation.",
+   "id": "fmt4",
+   "category": "format",
+   "prompt": "In at most 20 words: why should a unified-memory machine drop its page cache before loading a large model?",
+   "score": 0.0,
+   "fails": [
+    "words 21 in 1-20"
+   ]
+  },
+  {
+   "ttft_s": 0.51,
+   "wall_s": 3.77,
+   "completion_tokens": 110,
+   "prompt_tokens": 39,
+   "decode_tok_s": 33.5,
+   "reasoning_chars": 0,
+   "finish": "stop",
+   "output": "```python\ndef roman_to_int(s):\n    values = {'I': 1, 'V': 5, 'X': 10, 'L': 50, 'C': 100, 'D': 500, 'M': 1000}\n    total = 0\n    prev = 0\n    for ch in reversed(s):\n        val = values[ch]\n        if val < prev:\n            total -= val\n        else:\n            total += val\n            prev = val\n    return total\n```",
+   "id": "code5",
+   "category": "coding",
+   "prompt": "Write a Python function roman_to_int(s) converting a Roman numeral string to an integer. Return only one ```python code block.",
+   "score": 1.0,
+   "fails": []
+  },
+  {
+   "ttft_s": 0.51,
+   "wall_s": 8.06,
+   "completion_tokens": 247,
+   "prompt_tokens": 45,
+   "decode_tok_s": 32.6,
+   "reasoning_chars": 0,
+   "finish": "stop",
+   "output": "We need to find the remainder when $7^{100}$ is divided by 5.\n\n**Step 1: Simplify the base.**\n\nSince $7 \\equiv 2 \\pmod{5}$, we have:\n$$7^{100} \\equiv 2^{100} \\pmod{5}$$\n\n**Step 2: Find the pattern of powers of 2 mod 5.**\n\n- $2^1 \\equiv 2 \\pmod 5$\n- $2^2 \\equiv 4 \\pmod 5$\n- $2^3 \\equiv 8 \\equiv 3 \\pmod 5$\n- $2^4 \\equiv 16 \\equiv 1 \\pmod 5$\n\nThe powers of 2 repeat with a cycle of length 4.\n\n**Step 3: Apply the cycle.**\n\nSince $100 = 4 \\times 25$, we have:\n$$2^{100} = (2^4)^{25} \\equiv 1^{25} = 1 \\pmod 5$$\n\nTherefore, the remainder when $7^{100}$ is divided by 5 is **1**.\n\nANSWER: 1",
+   "id": "reason5",
+   "category": "reasoning",
+   "prompt": "What is the remainder when 7^100 is divided by 5?\n\nGive your final answer on the last line exactly as: ANSWER: <answer>",
+   "score": 1.0,
+   "fails": []
+  },
+  {
+   "ttft_s": 0.51,
+   "wall_s": 1.54,
+   "completion_tokens": 36,
+   "prompt_tokens": 75,
+   "decode_tok_s": 34.1,
+   "reasoning_chars": 0,
+   "finish": "stop",
+   "output": "{\"id\": 7, \"name\": \"Widget\", \"price\": 19.99, \"in_stock\": true, \"tags\": [\"tools\", \"home\"]}",
+   "id": "json5",
+   "category": "json",
+   "prompt": "Produce a JSON object with exactly these keys and values: id = integer 7, name = string \"Widget\", price = number 19.99, in_stock = boolean true, tags = array of strings [\"tools\", \"home\"].\n\nOutput only the JSON, no prose, no code fences.",
+   "score": 1.0,
+   "fails": []
+  },
+  {
+   "ttft_s": 2.08,
+   "wall_s": 10.49,
+   "completion_tokens": 318,
+   "prompt_tokens": 66,
+   "decode_tok_s": 37.7,
+   "reasoning_chars": 0,
+   "finish": "stop",
+   "output": "```html\n<div class=\"card\">\n  <img src=\"image.jpg\" alt=\"Description of the image\">\n  <h2>Card Title</h2>\n  <p>Some descriptive text for the card content goes here.</p>\n  <a href=\"#\" class=\"btn\">Read More</a>\n</div>\n<style>\n  .card {\n    max-width: 320px;\n    border: 1px solid #e0e0e0;\n    border-radius: 8px;\n    overflow: hidden;\n    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);\n    font-family: sans-serif;\n  }\n\n  .card img {\n    width: 100%;\n    display: block;\n  }\n\n  .card h2 {\n    margin: 16px 16px 8px;\n    font-size: 1.25rem;\n  }\n\n  .card p {\n    margin: 0 16px 16px;\n    color: #555;\n    line-height: 1.5;\n  }\n\n  .card .btn {\n    display: inline-block;\n    margin: 0 16px 16px;\n    padding: 8px 16px;\n    background-color: #007bff;\n    color: #fff;\n    text-decoration: none;\n    border-radius: 4px;\n  }\n\n  .card .btn:hover {\n    background-color: #0056b3;\n  }\n</style>\n```",
+   "id": "html5",
+   "category": "html",
+   "prompt": "Write an HTML card component with an inline <style> block: a <div class=\"card\"> containing an <img> with an alt attribute, an <h2>, a <p>, and an <a class=\"btn\">.\n\nOutput only the HTML.",
+   "score": 1.0,
+   "fails": []
+  },
+  {
+   "ttft_s": 9.39,
+   "wall_s": 24.72,
+   "completion_tokens": 193,
+   "prompt_tokens": 47,
+   "decode_tok_s": 12.5,
+   "reasoning_chars": 0,
+   "finish": "stop",
+   "output": "Time to first token (TTFT) is the pause before the assistant starts typing. Tokens per second is how fast it types once it starts.\n\nTTFT matters more because of how people perceive responsiveness. A response that starts quickly but streams at a moderate pace feels instant and alive. A response that starts slowly feels broken, even if it eventually streams very fast. Once text is flowing, your brain stays engaged \u2014 you're reading along, and the rest arrives while you're still processing what came before. But during that initial silence, you're just waiting, and waiting feels much longer than it is.\n\nThink of it like a restaurant: a server who brings your drink within seconds and then delivers courses at a steady clip feels attentive, while one who vanishes for ten minutes and then rushes everything out at once feels slow \u2014 even if the total meal time is identical.\n\nThat's why chat products obsess over TTFT: it sets the tone for the entire interaction.",
+   "id": "prose5",
+   "category": "prose",
+   "prompt": "In 100 to 150 words, explain in plain language why time to first token matters more than tokens per second for a chat assistant. Use exactly one concrete analogy.",
+   "score": 0.0,
+   "fails": [
+    "words 163 in 100-150"
+   ]
+  },
+  {
+   "ttft_s": 6.94,
+   "wall_s": 24.57,
+   "completion_tokens": 240,
+   "prompt_tokens": 41,
+   "decode_tok_s": 13.6,
+   "reasoning_chars": 0,
+   "finish": "stop",
+   "output": "Remy the robot loved to zoom. He zoomed through the garden, past the pond, and around the big oak tree. But there was one thing Remy couldn't do: wait. When his friend Mia planted a tiny seed, Remy asked, \"Is it a flower yet?\" every single minute. Mia laughed and said, \"Waiting is part of growing, Remy.\"\n\nRemy decided to try. He counted his gears. He counted the ants. He counted the clouds shaped like turtles. Some days it rained, and Remy stood very still, letting drops patter on his metal head. Some days the sun blazed, and Remy shaded the seed with his wide robot hands. Little by little, waiting got easier.\n\nThen one morning, Remy saw it\u2014a tiny green sprout poking through the soil! He was so happy he did his happy dance, spinning in circles until his antenna wobbled. \"You were worth the wait,\" Remy whispered to the sprout. Mia grinned. \"See? Good things come to those who wait.\" Remy nodded and made a new plan: tomorrow, he would learn to wait for something even bigger\u2014a pumpkin!",
+   "id": "story5",
+   "category": "narrative",
+   "prompt": "Write a 150 to 250 word story for children aged 6 to 8 about a robot learning to wait. Exactly three paragraphs.",
+   "score": 1.0,
+   "fails": []
+  },
+  {
+   "ttft_s": 6.94,
+   "wall_s": 11.59,
+   "completion_tokens": 102,
+   "prompt_tokens": 1005,
+   "decode_tok_s": 21.8,
+   "reasoning_chars": 0,
+   "finish": "stop",
+   "output": "NVFP4 vs EXL3: same model, same DGX Sparks, same minute. NVFP4 decodes faster (64.0 vs 61.5 tok/s, +14\u201330% under load). EXL3 hits first token 4.5\u00d7 sooner, 2.9\u00d7 prefill, 1M ctx, 4.7\u00d7 KV pool. Quality: tie. First run was wrong\u2014clock-capped Sparks. Reran clean. [link]",
+   "id": "sum5",
+   "category": "summary",
+   "prompt": "Turn the following into a single tweet of at most 280 characters. Output only the tweet.\n\n---\n# Tweet copy (final, same-state run 2026-09-01)\n\nAttach: results/poster_nvfp4_vs_exl3.png (lead image), results/chart_agg.png, results/chart_ttft.png, results/chart_w2w.png.\nLink goes through Hootsuite (Post Bridge strips links on X). Article: https://claude.ai/code/artifact/bdcc64b1-44f0-49e7-b3dc-f189d5674f7a\n\n## Main post\n\nNVFP4 vs EXL3. Same model, same boxes, same minute.\n\nGLM-5.3-Flash on 2\u00d7 DGX Spark per lane, TP2 each, both lanes benched simultaneously at c1 to c6, nothing else touching either.\n\nNVFP4 wins decode: 64.0 vs 61.5 tok/s single stream, +14 to 30% per stream at c2 to c5, faster wall-to-wall through c5.\n\nEXL3 wins the first token: 1.0 s vs 4.6 s TTFT at c6, prefill 2.9\u00d7 (3,099 vs 1,055 tok/s), 1M context and 4.7\u00d7 the KV pool on the same two boxes, boots in 13 min vs 23.\n\nQuality battery, 12 items, thinking off and on: 11/12 vs 11/12, then 12/12 vs 12/12. Same miss, same fix. The quant did not change how smart it is.\n\nOur first pass said EXL3 won everything. Two of the four Sparks were clock-capped at ~700 MHz after a reboot. We caught it, restarted, and ran the whole thing again. Numbers here are the second run.\n\nFull method, isolation proof, every number and the reasoning traces side by side: [link]\n\n## Short version\n\nTwo 4-bit quants of GLM-5.3-Flash, two 2-node DGX Spark lanes, benched at the same time.\nNVFP4: +4% decode, +14 to 30% per stream under load.\nEXL3: first token 4.5\u00d7 sooner at c6, 2.9\u00d7 prefill, 1M context, 4.7\u00d7 KV pool.\nQuality: tie, 11/12 and 12/12 on both.\nDetails: [link]\n\n## Reply (thread)\n\nBoth recipes are public: the NVFP4 2-Spark launcher (github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-DFlash2-2x-DGX-Spark) and the EXL3 kit from Reederey87 with brandonmusic's tr3-4bpw weights and turboderp's exllamav3 built for sm_121a. Credits in the article.\n\n## Opening post (thread starter, with results/card_nvfp4_vs_exl3.png)\n\nEveryone kept saying EXL3 beats NVFP4. So we ran both on the same model, the same DGX Sparks, at the same minute.\n\nGLM-5.3-Flash, two 4-bit quants, two 2-node TP2 lanes, c1 to c6, nothing else touching either lane.\n\nNVFP4 decodes faster: 64.0 vs 61.5 tok/s single stream, +14 to 30% per stream under load.\n\nEXL3 gets you the first token 4.5x sooner at c6 (1.0 s vs 4.6 s), prefills 2.9x faster, holds 1M context and 4.7x the KV pool on the same two boxes, and boots in 13 min instead of 23.\n\nQuality: a tie. 12-item reasoning battery, 11/12 vs 11/12 thinking off, 12/12 vs 12/12 thinking on.\n\nOur first run said EXL3 won everything. Two Sparks were clock-capped at ~700 MHz after a reboot. We caught it, restarted, ran it all again. These are the second-run numbers.\n\nFull write-up, method, isolation proof and the reasoning traces side by side in the thread.\n\nReply 1: article link (via Hootsuite). Reply 2: both recipes are public (NVFP4 launcher repo + the EXL3 kit: Reederey87, brandonmusic tr3-4bpw, turboderp exllamav3 for sm_121a). Credits in the article.\n\nCards: results/card_nvfp4_vs_exl3.png (icons, pick) \u00b7 res",
+   "score": 1.0,
+   "fails": []
+  },
+  {
+   "ttft_s": 6.94,
+   "wall_s": 8.88,
+   "completion_tokens": 19,
+   "prompt_tokens": 40,
+   "decode_tok_s": 9.3,
+   "reasoning_chars": 0,
+   "finish": "stop",
+   "output": "Whispering blades spin\nCooling silicon's hot heart\u2014\nSilent when idle",
+   "id": "fmt5",
+   "category": "format",
+   "prompt": "Write a haiku about a GPU fan: three lines, 5-7-5 syllables. Output only the three lines.",
+   "score": 1.0,
+   "fails": []
+  }
+ ],
+ "ts": "2026-09-01 18:31"
+}

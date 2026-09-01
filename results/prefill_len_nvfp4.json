@@ -1,0 +1,80 @@
+{
+ "lane": "nvfp4",
+ "model": "glm-5.3-flash",
+ "reps": 2,
+ "rows": [
+  {
+   "target": 8000,
+   "prompt_tokens": 6899,
+   "cold_tok_s": 1482,
+   "cold_s": 4.7,
+   "warm_tok_s": 1479,
+   "warm_s": 4.7,
+   "all_tok_s": [
+    1482,
+    1479
+   ]
+  },
+  {
+   "target": 16000,
+   "prompt_tokens": 13772,
+   "cold_tok_s": 1559,
+   "cold_s": 8.8,
+   "warm_tok_s": 2283,
+   "warm_s": 6.0,
+   "all_tok_s": [
+    1559,
+    2283
+   ]
+  },
+  {
+   "target": 32000,
+   "prompt_tokens": 27518,
+   "cold_tok_s": 1876,
+   "cold_s": 14.7,
+   "warm_tok_s": 4598,
+   "warm_s": 6.0,
+   "all_tok_s": [
+    1876,
+    4598
+   ]
+  },
+  {
+   "target": 64000,
+   "prompt_tokens": 55097,
+   "cold_tok_s": 2384,
+   "cold_s": 23.1,
+   "warm_tok_s": 9076,
+   "warm_s": 6.1,
+   "all_tok_s": [
+    2384,
+    9076
+   ]
+  },
+  {
+   "target": 128000,
+   "prompt_tokens": 110255,
+   "cold_tok_s": 2684,
+   "cold_s": 41.1,
+   "warm_tok_s": 18246,
+   "warm_s": 6.0,
+   "all_tok_s": [
+    2684,
+    18246
+   ]
+  },
+  {
+   "target": 245000,
+   "prompt_tokens": 211001,
+   "cold_tok_s": 2763,
+   "cold_s": 76.4,
+   "warm_tok_s": 22931,
+   "warm_s": 9.2,
+   "all_tok_s": [
+    2763,
+    22931
+   ]
+  }
+ ],
+ "ts": "2026-09-01 18:38"
+}

@@ -52,3 +52,15 @@ Reply 1: article link (via Hootsuite). Reply 2: both recipes are public (NVFP4 l
 Cards: results/card_nvfp4_vs_exl3.png (icons, pick) · results/card_nvfp4_vs_exl3_alt.png (plain). gpt-image-2, numbers verified against results/*.json.
 
 Cover (5:2, X Article header): results/cover_5x2.png (pick) · results/cover_5x2_alt.png (photo alt).
+
+## Correction post (thread reply, with results/card_nvfp4_vs_exl3_v2.png)
+
+Correction from our own re-test. The first-token win we gave EXL3 was prefix caching: our sweep repeated one prompt, EXL3 replayed it from cache, NVFP4 (2,304-token cache blocks) recomputed it every time.
+
+With a different prompt for every request, NVFP4 leads time to first token at every concurrency: 1.3 vs 2.3 s at c1, 4.5 vs 9.8 s at c6. Fresh prefill 1,225 vs 684 tok/s. At 211K tokens NVFP4 prefills at 2,763 vs 1,752 tok/s. dfi and Zeus were right.
+
+What EXL3 keeps: the cache itself (replays 211K in 0.8 s vs 9 s), mixed load of four real prompts (43 vs 31 tok/s, 0.66 vs 1.97 s first token), 1M context, 4.7x the KV pool, 13-min boot.
+
+Quality on 40 real prompts across 8 categories: 86% vs 85%, judge 9/8/13. Tie. EXL3 loops into self-correction with thinking off; thinking on fixes it.
+
+NVFP4 for fresh single-shot work. EXL3 for agents that re-send long context every turn. Updated tables, method and the mistake, in the article.

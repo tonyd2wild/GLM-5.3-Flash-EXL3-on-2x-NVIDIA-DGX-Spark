@@ -6,7 +6,7 @@
 The same 320B MoE, GLM-5.3-Flash, in two 4-bit quantizations, on two independent 2-node DGX Spark pairs, benched
 **at the same time in the same state** (all four nodes restarted together, clocks verified at ~2,170–2,190 MHz under
 decode load), isolated from every other consumer. Single-stream decode: NVFP4 64.3 tok/s vs EXL3 61.8 tok/s (NVFP4 +4%). Peak aggregate: NVFP4 138.6 tok/s vs EXL3 149.7 tok/s (EXL3 +8%) (peaks at c3 / c4).
-Per-stream at c6: NVFP4 35.0 tok/s vs EXL3 35.8 tok/s (EXL3 +2%). Warm prefill: NVFP4 1055 tok/s vs EXL3 3099 tok/s (EXL3 +194%); TTFT NVFP4 1.54 s vs EXL3 0.52 s (EXL3 lower by 66%). Wall-to-wall at c6: NVFP4 10.09 s vs EXL3 8.95 s (EXL3 lower by 11%). EXL3 serves 4× the
+Per-stream at c6: NVFP4 35.0 tok/s vs EXL3 35.8 tok/s (EXL3 +2%). Warm prefill: NVFP4 1225 tok/s vs EXL3 684 tok/s (NVFP4 +79%); TTFT NVFP4 1.29 s vs EXL3 2.31 s (NVFP4 lower by 44%). Wall-to-wall at c6: NVFP4 10.09 s vs EXL3 8.95 s (EXL3 lower by 11%). EXL3 serves 4× the
 context with 4.7× the KV pool; boot to serve EXL3 13 min (local weights both nodes, warm trellis JIT cache) vs NVFP4 23 min (worker loads over NFS from head (Reddie page cache warm), TileLang cache partly warm); quality
 probe tie. An earlier run showing EXL3 ahead on every line was discarded: NVFP4's nodes were
 clock-capped after a reboot (611–728 MHz); with clocks equal the picture is the one above.
@@ -18,8 +18,12 @@ clock-capped after a reboot (611–728 MHz); with clocks equal the picture is th
 | peak aggregate tok/s (at c) | 138.6 (c3) | 149.7 (c4) | 1.1× |
 | c6 aggregate tok/s | 136.3 | 125.2 | 0.9× |
 | c6 per-stream tok/s | 35.0 | 35.8 | 1.0× |
-| prefill tok/s (~1.5K prompt) (warm, median of last 3 of 6 sequential 1.5K prompts; first-after-boot cold sample: EXL3 2685 tok/s / NVFP4 1214 tok/s) | 1055 | 3099 | 2.9× |
-| TTFT c1 / c6 | 1.54 s / 4.6 s | 0.52 s / 1.02 s | 3.0× / 4.5× lower |
+| prefill tok/s (~1.5K prompt) (fresh prompts, different text per request, ~1,582 tokens, median of 3 rounds) | 1225 | 684 | 0.6× |
+| TTFT, fresh 1.6K prompts, c1 / c6 | 1.29 s / 4.53 s | 2.31 s / 9.82 s | 0.6× / 0.5× lower |
+| identical prompt repeated (prefix cache), TTFT c1 / c6 | 1.54 s / 4.6 s | 0.52 s / 1.02 s | cache, not prefill |
+| cold prefill on a fresh 211,001-token prompt, tok/s | 2,763 | 1,752 | |
+| 211,001-token context replayed (prefix cache) | 9.2 s | 0.8 s | |
+| mixed load c4 (four real prompts in flight): aggregate tok/s / TTFT | 31.4 / 1.97 s | 43.4 / 0.66 s | |
 | wall-to-wall c1 / c6 (300-tok answer) | 4.98 s / 10.09 s | 5.18 s / 8.95 s | 1.0× / 1.1× lower |
 | c1 spread (detailed, n=5) | 62.8–64.7 (±1.5%) | 59.8–61.9 (±1.7%) | |
 | max context | 262,144 | 1,048,576 | 4× |
@@ -28,14 +32,14 @@ clock-capped after a reboot (611–728 MHz); with clocks equal the picture is th
 | boot: launch → /health 200 | 23 min (worker loads over NFS from head (Reddie page cache warm), TileLang cache partly warm) | 13 min (local weights both nodes, warm trellis JIT cache) | |
 
 ## Sweep c1–c6 (3 rounds per level)
-| c | NVFP4 agg | per-stream | wall-to-wall | TTFT | EXL3 agg | per-stream | wall-to-wall | TTFT |
+| c | NVFP4 agg | per-stream | wall-to-wall | TTFT (fresh) | EXL3 agg | per-stream | wall-to-wall | TTFT (fresh) |
 |---|---|---|---|---|---|---|---|---|
-| 1 | 64.3 | 64.3 | 4.98 s | 1.54 s | **61.8** | **61.8** | **5.18 s** | **0.52 s** |
-| 2 | 111.1 | 55.5 | 5.76 s | 2.19 s | **92.5** | **46.5** | **6.88 s** | **0.76 s** |
-| 3 | 138.6 | 47.0 | 6.81 s | 3.36 s | **120.2** | **41.2** | **7.76 s** | **0.83 s** |
-| 4 | 111.2 | 48.5 | 6.61 s | 3.05 s | **149.7** | **37.4** | **8.55 s** | **0.88 s** |
-| 5 | 131.3 | 47.0 | 6.81 s | 3.11 s | **116.9** | **36.2** | **8.85 s** | **1.06 s** |
-| 6 | 136.3 | 35.0 | 10.09 s | 4.6 s | **125.2** | **35.8** | **8.95 s** | **1.02 s** |
+| 1 | 64.3 | 64.3 | 4.98 s | 1.29 s | 61.8 | 61.8 | 5.18 s | 2.31 s |
+| 2 | 111.1 | 55.5 | 5.76 s | 2.14 s | 92.5 | 46.5 | 6.88 s | 4.13 s |
+| 3 | 138.6 | 47.0 | 6.81 s | 3.01 s | 120.2 | 41.2 | 7.76 s | 5.85 s |
+| 4 | 111.2 | 48.5 | 6.61 s | 3.0 s | 149.7 | 37.4 | 8.55 s | 7.47 s |
+| 5 | 131.3 | 47.0 | 6.81 s | 2.98 s | 116.9 | 36.2 | 8.85 s | 8.96 s |
+| 6 | 136.3 | 35.0 | 10.09 s | 4.53 s | 125.2 | 35.8 | 8.95 s | 9.82 s |
 
 ## Hardware and topology
 Four NVIDIA DGX Spark (GB10, sm_121a, 128 GB unified memory, ~121 GB usable) on a ConnectX-7 RoCE v2 fabric,
@@ -77,7 +81,7 @@ Temperature 0, `stream false`, thinking off, identical prompts. Tools in `tools/
 ## Reading the curve
 EXL3 scales to 149.7 tok/s at c4 and flattens — the kit's `--max-num-seqs 4` (a config cap, not the quant).
 NVFP4 (`--max-num-seqs 6`) admits all six but pays per stream: 64.3 → 35.0 tok/s,
-TTFT 1.54 → 4.6 s, wall-to-wall 4.98 → 10.09 s.
+TTFT 1.29 → 4.53 s, wall-to-wall 4.98 → 10.09 s.
 
 ## Quality: does the quant change how smart it is?
 **Probe** (top-k in O(n log k) + bat-and-ball, thinking off): EXL3 correct, NVFP4 correct.
@@ -153,6 +157,53 @@ EXL3 (282 chars, right):
 > ANSWER: 9
 
 Published KLD: EXL3/TR3 4bpw ~0.025 (ties FP8), NVFP4 ~0.060. Twelve items is a probe, not a suite.
+
+## What we got wrong, part two: the prefix cache
+The first version said EXL3 "answers first" (0.52 vs 1.54 s at c1; prefill 3099 vs 1055 tok/s). Every request carried the same prompt; EXL3 replayed its prefix cache, NVFP4 (2,304-token cache blocks) recomputed. Fresh prompts: TTFT c1 NVFP4 1.29 s vs EXL3 2.31 s, c6 4.53 vs 9.82 s; fresh prefill 1,225 vs 684 tok/s; cold prefill at 211,001 tokens 2,763 vs 1,752 tok/s. EXL3 keeps: the cache (identical 1.6K prompt repeated: EXL3 0.52 s vs NVFP4 1.54 s at c1, 1.02 s vs 4.6 s at c6; a 211,001-token context replayed in 0.8 s vs 9.2 s), mixed real-prompt load (NVFP4 31.4 tok/s vs EXL3 43.4 tok/s aggregate, TTFT 1.97 s vs 0.66 s), 4× context, 4.7× KV, 13-min boot.
+
+
+## Real prompts: 40 across 8 categories (thinking off, c1, streaming)
+
+| category | auto score NVFP4 | auto score EXL3 | judge (NVFP4 / EXL3 / tie) | TTFT NVFP4 | TTFT EXL3 | decode NVFP4 | decode EXL3 | tokens (med) |
+|---|---|---|---|---|---|---|---|---|
+| coding | 100% | 80% | 3 / 1 / 1 | 0.32 s | 0.34 s | 48.3 | 41.9 | 110 / 295 |
+| reasoning | 100% | 100% | — | 0.37 s | 0.31 s | 47.8 | 42.3 | 177 / 163 |
+| json | 100% | 100% | — | 0.42 s | 0.53 s | 52.9 | 50.3 | 36 / 36 |
+| html | 100% | 100% | 0 / 1 / 4 | 0.40 s | 0.47 s | 52.6 | 56.1 | 138 / 129 |
+| prose | 75% | 55% | 1 / 2 / 2 | 0.34 s | 0.30 s | 18.8 | 19.5 | 200 / 199 |
+| narrative | 89% | 76% | 3 / 2 / 0 | 0.34 s | 0.29 s | 18.7 | 17.9 | 307 / 335 |
+| summary | 60% | 70% | 1 / 1 / 3 | 1.68 s | 7.29 s | 36.9 | 34.0 | 205 / 187 |
+| format | 60% | 96% | 1 / 1 / 3 | 0.34 s | 0.33 s | 28.7 | 21.1 | 27 / 20 |
+
+Overall auto score (checkable categories): NVFP4 86%, EXL3 85%. Median TTFT across all 40: NVFP4 0.37 s, EXL3 0.33 s. Median decode: NVFP4 41.9 tok/s, EXL3 38.4 tok/s.
+Mixed load, c4 (four different prompt types in flight): aggregate NVFP4 31.4 tok/s vs EXL3 43.4 tok/s; median TTFT 1.97 s vs 0.66 s; auto score 86% vs 84%.
+Thinking on (coding + reasoning): auto score NVFP4 100% vs EXL3 100%; median TTFT 0.36 s vs 0.32 s.
+Blind pairwise judge (qwen3.8-27b), both orders, win only if consistent: NVFP4 9, EXL3 8, tie 13.
+
+Items where the auto score differed:
+- code4 (coding): NVFP4 100%  · EXL3 0% [0/6 tests · SyntaxError: invalid syntax]
+- prose4 (prose): NVFP4 100%  · EXL3 0% [words 218 in 150-200]
+- story2 (narrative): NVFP4 67% [words 231 in 120-200] · EXL3 100% 
+- story3 (narrative): NVFP4 100%  · EXL3 50% [words 368 in 200-300]
+- story5 (narrative): NVFP4 100%  · EXL3 50% [words 265 in 150-250]
+- sum2 (summary): NVFP4 0% [words 112 in 20-80; paragraphs=1] · EXL3 50% [words 98 in 20-80]
+- fmt2 (format): NVFP4 100%  · EXL3 80% [table rows=2+header]
+- fmt4 (format): NVFP4 0% [words 22 in 1-20] · EXL3 100% 
+- fmt5 (format): NVFP4 0% [lines=3] · EXL3 100% 
+
+### Prefill vs prompt length
+
+Cold = first request at that length, a new prompt: this is the real prefill compute. Repeat = the identical prompt sent again, which is a prefix-cache hit on both engines and measures the cache, not prefill.
+
+| prompt tokens | NVFP4 cold tok/s (s) | EXL3 cold tok/s (s) | NVFP4 repeat | EXL3 repeat |
+|---|---|---|---|---|
+| 6,899 | 1,482 (4.7 s) | 775 (8.9 s) | 1,479 (4.7 s) | 17,252 (0.4 s) |
+| 13,772 | 1,559 (8.8 s) | 1,614 (8.5 s) | 2,283 (6.0 s) | 35,919 (0.4 s) |
+| 27,518 | 1,876 (14.7 s) | 1,711 (16.1 s) | 4,598 (6.0 s) | 55,387 (0.5 s) |
+| 55,097 | 2,384 (23.1 s) | 1,660 (33.2 s) | 9,076 (6.1 s) | 101,681 (0.5 s) |
+| 110,255 | 2,684 (41.1 s) | 1,780 (61.9 s) | 18,246 (6.0 s) | 176,340 (0.6 s) |
+| 211,001 | 2,763 (76.4 s) | 1,752 (120.4 s) | 22,931 (9.2 s) | 261,333 (0.8 s) |
+
 
 ## Boot and load time
 Launch command → first `/health` 200, this run: EXL3 13 min (local weights both nodes, warm trellis JIT cache); NVFP4 23 min (worker loads over NFS from head (Reddie page cache warm), TileLang cache partly warm). NVFP4's worker reads its
