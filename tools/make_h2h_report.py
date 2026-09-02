@@ -51,11 +51,8 @@ md = ["## TP4 head-to-head, matched config: DeepSeek V4 Flash Vision vs GLM-5.3-
       f"| mixed real-prompt aggregate C16 | {f(ov(d,16,'agg_tok_s_med'))} | {f(ov(g,16,'agg_tok_s_med'))} |",
       f"| first token, fresh 1.6K prompt, C1 / C16 | {f(fr(d,1),2)} / {f(fr(d,16),2)} s | {f(fr(g,1),2)} / {f(fr(g,16),2)} s |",
       f"| cold prefill, fresh 211K prompt | {(f(PL[d]['rows'][-1]['cold_tok_s'],0) if PL[d] and not PL[d]['rows'][-1].get('error') else '—')} tok/s | {(f(PL[g]['rows'][-1]['cold_tok_s'],0) if PL[g] and not PL[g]['rows'][-1].get('error') else '—')} tok/s |",
-      "", "Counting-prompt numbers below are the speculative-decode ceiling (the drafter's easiest sequence), kept for comparability with earlier runs, not the headline.", "",
-      "### Aggregate tok/s vs concurrency (counting prompt = speculative-decode ceiling, ~300-token answers, median of 2 rounds)", "", "| C | DeepSeek | GLM | GLM vs DeepSeek |", "|---|---|---|---|"]
-for c in levels: md.append(f"| {c} | {f(row(d,c,'agg_tok_s'))} | {f(row(g,c,'agg_tok_s'))} | {gain(row(g,c,'agg_tok_s'), row(d,c,'agg_tok_s'))} |")
-md += ["", "### Per-stream tok/s vs concurrency", "", "| C | DeepSeek | GLM |", "|---|---|---|"]
-for c in levels: md.append(f"| {c} | {f(row(d,c,'per_stream_tok_s'))} | {f(row(g,c,'per_stream_tok_s'))} |")
+      "", "Every number above and in the chart is from real prompts. The counting-prompt ladder is at the bottom, labeled as the draft-acceptance ceiling.",
+      ]
 md += ["", "### Time to first token, fresh 1.6K prompts (s, median)", "", "| C | DeepSeek | GLM |", "|---|---|---|"]
 for c in (1, 8, 16): md.append(f"| {c} | {f(fr(d,c),2)} | {f(fr(g,c),2)} |")
 md += ["", "### Real prompts, 40 across 8 categories, C1 (auto score / decode tok/s / TTFT s)", "", "| category | DeepSeek | GLM |", "|---|---|---|"]
@@ -76,6 +73,12 @@ md += ["", "### Power at C16 (GPU, four nodes, 60 s)", "", "| | DeepSeek | GLM |
        f"| throughput under load | {f(PW[d]['tok_s']) if PW[d] else '—'} tok/s | {f(PW[g]['tok_s']) if PW[g] else '—'} tok/s |",
        f"| four-node GPU power | {f(wd)} W | {f(wg)} W |",
        f"| tokens per joule | {f(PW[d]['tok_s']/wd, 2) if (PW[d] and wd) else '—'} | {f(PW[g]['tok_s']/wg, 2) if (PW[g] and wg) else '—'} |"]
+md += ["", "### Peak ceiling: the counting prompt (max draft acceptance, NOT a typical number)", "",
+       "One prompt, count from 1 to 300, ~300 tokens of the easiest sequence a speculative drafter can guess. It is what most Spark posts quote as decode speed and it reads 2 to 3× higher than prose. Kept here only as the acceptance ceiling of each drafter.", "",
+       "| C | DeepSeek | GLM | GLM vs DeepSeek |", "|---|---|---|---|"]
+for c in levels: md.append(f"| {c} | {f(row(d,c,'agg_tok_s'))} | {f(row(g,c,'agg_tok_s'))} | {gain(row(g,c,'agg_tok_s'), row(d,c,'agg_tok_s'))} |")
+md += ["", "| C | DeepSeek per stream | GLM per stream |", "|---|---|---|"]
+for c in levels: md.append(f"| {c} | {f(row(d,c,'per_stream_tok_s'))} | {f(row(g,c,'per_stream_tok_s'))} |")
 # verdict, computed
 def sat(l):
     ys = [(c, row(l, c, "agg_tok_s")) for c in levels if row(l, c, "agg_tok_s")]
@@ -85,40 +88,43 @@ def sat(l):
 bd, bg = sat(d), sat(g)
 c1d, c1g = D[d].get("c1_med", row(d, 1, "agg_tok_s")), D[g].get("c1_med", row(g, 1, "agg_tok_s"))
 md += ["", "### Verdict (computed from the rows above)", "",
-       f"- Single stream (counting, n=5): DeepSeek {f(c1d)} vs GLM {f(c1g)} tok/s ({gain(c1g, c1d)} for GLM).",
-       f"- Peak aggregate: DeepSeek {f(bd[0][1] if bd[0] else None)} at C{bd[0][0] if bd[0] else '?'}; GLM {f(bg[0][1] if bg[0] else None)} at C{bg[0][0] if bg[0] else '?'}. First level where the next step gains under 5%: DeepSeek {('C'+str(bd[1])) if bd[1] else 'none through C48'}, GLM {('C'+str(bg[1])) if bg[1] else 'none through C48'} (the DeepSeek C5 dip is a two-round median artifact; C6 and up climb again).",
-       f"- C48 aggregate: DeepSeek {f(row(d,48,'agg_tok_s'))} vs GLM {f(row(g,48,'agg_tok_s'))} ({gain(row(g,48,'agg_tok_s'), row(d,48,'agg_tok_s'))} for GLM).",
-       f"- Real prompts C1 decode: DeepSeek {f(ov(d,1,'decode_med_tok_s'))} vs GLM {f(ov(g,1,'decode_med_tok_s'))} tok/s; prose: DeepSeek {f(cat(d,'prose','decode_med_tok_s'))} vs GLM {f(cat(g,'prose','decode_med_tok_s'))}; coding: {f(cat(d,'coding','decode_med_tok_s'))} vs {f(cat(g,'coding','decode_med_tok_s'))}.",
-       f"- Quality on the 40 prompts (same noise band as always, ±4 pts run to run): DeepSeek {pct(ov(d,1,'auto_score'))} vs GLM {pct(ov(g,1,'auto_score'))}."]
+       f"- Real prompts, single stream: DeepSeek {f(ov(d,1,'decode_med_tok_s'))} vs GLM {f(ov(g,1,'decode_med_tok_s'))} tok/s median over 40 prompts; prose {f(cat(d,'prose','decode_med_tok_s'))} vs {f(cat(g,'prose','decode_med_tok_s'))}; narrative {f(cat(d,'narrative','decode_med_tok_s'))} vs {f(cat(g,'narrative','decode_med_tok_s'))}; code {f(cat(d,'coding','decode_med_tok_s'))} vs {f(cat(g,'coding','decode_med_tok_s'))}.",
+       f"- Real prompts under load: C4 aggregate {f(ov(d,4,'agg_tok_s_med'))} vs {f(ov(g,4,'agg_tok_s_med'))} tok/s (first token {f(ov(d,4,'ttft_med_s'),2)} vs {f(ov(g,4,'ttft_med_s'),2)} s); C16 {f(ov(d,16,'agg_tok_s_med'))} vs {f(ov(g,16,'agg_tok_s_med'))} (first token {f(ov(d,16,'ttft_med_s'),2)} vs {f(ov(g,16,'ttft_med_s'),2)} s).",
+       f"- Quality on the 40 prompts (±4 pts run to run): DeepSeek {pct(ov(d,1,'auto_score'))} vs GLM {pct(ov(g,1,'auto_score'))} at C1; {pct(ov(d,16,'auto_score'))} vs {pct(ov(g,16,'auto_score'))} at C16.",
+       f"- Cold prefill, fresh 182K prompt: DeepSeek {(f(PL[d]['rows'][-1]['cold_tok_s'],0) if PL[d] else '—')} vs GLM {(f(PL[g]['rows'][-1]['cold_tok_s'],0) if PL[g] else '—')} tok/s; DeepSeek reaches its plateau by 14K, GLM climbs to it.",
+       f"- Tokens per joule at C16: DeepSeek {f(PW[d]['tok_s']/wd, 2) if (PW[d] and wd) else '—'} vs GLM {f(PW[g]['tok_s']/wg, 2) if (PW[g] and wg) else '—'}.",
+       f"- Ceiling only (counting prompt): C1 {f(c1d)} vs {f(c1g)} tok/s, C48 {f(row(d,48,'agg_tok_s'))} vs {f(row(g,48,'agg_tok_s'))}. Not a decode number.", ""]
 open("results/h2h_tp4.md", "w").write("\n".join(md) + "\n")
 json.dump({"levels": levels, "agg": {l: [row(l, c, "agg_tok_s") for c in levels] for l, _ in L}, "per_stream": {l: [row(l, c, "per_stream_tok_s") for c in levels] for l, _ in L},
            "ttft_fresh": {l: [fr(l, c) for c in (1, 8, 16)] for l, _ in L}, "c1_detailed": {d: c1d, g: c1g}, "watts": {d: wd, g: wg}}, open("results/h2h_tp4.json", "w"), indent=1)
 print("-> results/h2h_tp4.md")
 G="#1B1C1F"; P="#232428"; INK="#F2F2F0"; MUT="#9A9DA3"; RULE="#3A3C41"
 plt.rcParams.update({"font.family":"DejaVu Sans","text.color":INK,"axes.edgecolor":RULE,"axes.labelcolor":MUT,"xtick.color":MUT,"ytick.color":MUT,"axes.facecolor":P,"figure.facecolor":G,"savefig.facecolor":G})
-fig, axs = plt.subplots(2, 2, figsize=(15, 10), dpi=150)
+def rp_line(ax, key, title, ylabel=None):
+    xs = [1, 4, 16]
+    for l, n in L:
+        ys = []
+        for c in xs:
+            v = ov(l, c, key) if not (c == 1 and key == "agg_tok_s_med") else ov(l, 1, "decode_med_tok_s")
+            ys.append(v)
+        if any(y is None for y in ys): continue
+        ax.plot(range(3), ys, color=col[l], lw=2.4, marker="o", ms=6, label=n)
+        for i, y in enumerate(ys): ax.annotate(f"{y:.0f}" if y >= 10 else f"{y:.2f}", (i, y), textcoords="offset points", xytext=(0, 8 if l == d else -13), ha="center", fontsize=8, color=INK)
+    ax.set_xticks(range(3)); ax.set_xticklabels(["C1", "C4 mixed", "C16 mixed"]); ax.set_title(title, loc="left", fontsize=11, fontweight="bold", color=INK); ax.grid(axis="y", color=RULE, lw=0.6); ax.spines[["top","right"]].set_visible(False); ax.legend(frameon=False, labelcolor=INK)
+    if ylabel: ax.set_ylabel(ylabel)
+def cat_bars(ax, cc, title):
+    w = 0.38; x = range(len(CATS))
+    for k, (l, n) in enumerate(L):
+        vs = [cat(l, c, "decode_med_tok_s", cc) or 0 for c in CATS]
+        ax.bar([i + (k - 0.5) * w for i in x], vs, w, color=col[l], label=n)
+        for i, v in enumerate(vs):
+            if v: ax.text(i + (k - 0.5) * w, v, f"{v:.0f}", ha="center", va="bottom", fontsize=7.5, color=INK)
+    ax.set_xticks(list(x)); ax.set_xticklabels(CATS, rotation=30, ha="right"); ax.set_title(title, loc="left", fontsize=11, fontweight="bold", color=INK); ax.grid(axis="y", color=RULE, lw=0.6); ax.spines[["top","right"]].set_visible(False); ax.legend(frameon=False, labelcolor=INK)
 col = {d: "#8F9297", g: "#F2F2F0"}
-ax = axs[0][0]
-for l, n in L:
-    ys = [row(l, c, "agg_tok_s") for c in levels]
-    if any(y is None for y in ys): continue
-    ax.plot(range(len(levels)), ys, color=col[l], lw=2.4, marker="o", ms=6, label=n)
-    for i, y in enumerate(ys): ax.annotate(f"{y:.0f}", (i, y), textcoords="offset points", xytext=(0, 8 if l == d else -13), ha="center", fontsize=8, color=INK)
-ax.set_xticks(range(len(levels))); ax.set_xticklabels([f"C{c}" for c in levels]); ax.set_title("Aggregate tok/s vs concurrency (TP4, seqs 64, graphs on)", loc="left", fontsize=11, fontweight="bold", color=INK); ax.grid(axis="y", color=RULE, lw=0.6); ax.spines[["top","right"]].set_visible(False); ax.legend(frameon=False, labelcolor=INK)
-ax = axs[0][1]
-for l, n in L:
-    ys = [row(l, c, "per_stream_tok_s") for c in levels]
-    if any(y is None for y in ys): continue
-    ax.plot(range(len(levels)), ys, color=col[l], lw=2.4, marker="o", ms=6, label=n)
-    for i, y in enumerate(ys): ax.annotate(f"{y:.0f}", (i, y), textcoords="offset points", xytext=(0, 8 if l == d else -13), ha="center", fontsize=8, color=INK)
-ax.set_xticks(range(len(levels))); ax.set_xticklabels([f"C{c}" for c in levels]); ax.set_title("Per-stream tok/s vs concurrency", loc="left", fontsize=11, fontweight="bold", color=INK); ax.grid(axis="y", color=RULE, lw=0.6); ax.spines[["top","right"]].set_visible(False); ax.legend(frameon=False, labelcolor=INK)
-ax = axs[1][0]; w = 0.38; x = range(len(CATS))
-for k, (l, n) in enumerate(L):
-    vs = [cat(l, c, "decode_med_tok_s") or 0 for c in CATS]
-    ax.bar([i + (k - 0.5) * w for i in x], vs, w, color=col[l], label=n)
-    for i, v in enumerate(vs):
-        if v: ax.text(i + (k - 0.5) * w, v, f"{v:.0f}", ha="center", va="bottom", fontsize=7.5, color=INK)
-ax.set_xticks(list(x)); ax.set_xticklabels(CATS, rotation=30, ha="right"); ax.set_title("Real-prompt decode tok/s by category (C1)", loc="left", fontsize=11, fontweight="bold", color=INK); ax.grid(axis="y", color=RULE, lw=0.6); ax.spines[["top","right"]].set_visible(False); ax.legend(frameon=False, labelcolor=INK)
+fig, axs = plt.subplots(2, 2, figsize=(15, 10), dpi=150)
+rp_line(axs[0][0], "agg_tok_s_med", "Real prompts: aggregate tok/s vs streams in flight (40 prompts, 8 categories)")
+cat_bars(axs[0][1], 1, "Real-prompt decode tok/s by category, single stream")
+cat_bars(axs[1][0], 16, "Real-prompt decode tok/s by category, 16 streams in flight")
 ax = axs[1][1]
 if PL[d] and PL[g]:
     for l, n in L:
@@ -126,6 +132,16 @@ if PL[d] and PL[g]:
         ax.plot([r["prompt_tokens"] / 1000 for r in rows], [r["cold_tok_s"] for r in rows], color=col[l], lw=2.4, marker="o", ms=6, label=n)
         for r in rows: ax.annotate(f"{r['cold_tok_s']:,}", (r["prompt_tokens"] / 1000, r["cold_tok_s"]), textcoords="offset points", xytext=(0, 8 if l == d else -13), ha="center", fontsize=8, color=INK)
     ax.set_xscale("log"); ax.set_xlabel("prompt tokens (K)")
-ax.set_title("Cold prefill tok/s vs prompt length", loc="left", fontsize=11, fontweight="bold", color=INK); ax.grid(axis="y", color=RULE, lw=0.6); ax.spines[["top","right"]].set_visible(False); ax.legend(frameon=False, labelcolor=INK)
-fig.text(0.01, 0.01, "2026-09-02 · each model alone on 4× DGX Spark (TP4), max-num-seqs 64, CUDA graphs on, same battery, back to back · temp 0 · isolated · @tonyd2wild", fontsize=9, color=MUT)
+ax.set_title("Cold prefill tok/s vs prompt length (fresh prompt, no cache)", loc="left", fontsize=11, fontweight="bold", color=INK); ax.grid(axis="y", color=RULE, lw=0.6); ax.spines[["top","right"]].set_visible(False); ax.legend(frameon=False, labelcolor=INK)
+fig.text(0.01, 0.01, "2026-09-02 · each model alone on 4× DGX Spark (TP4), max-num-seqs 64, CUDA graphs on · real prompts only, temp 0, isolated, back to back · @tonyd2wild", fontsize=9, color=MUT)
 fig.tight_layout(rect=(0, 0.03, 1, 1)); fig.savefig("results/chart_h2h.png"); print("-> results/chart_h2h.png")
+# ceiling chart, separate and small, labeled for what it is
+fig2, ax = plt.subplots(1, 1, figsize=(11, 4.2), dpi=150)
+for l, n in L:
+    ys = [row(l, c, "agg_tok_s") for c in levels]
+    if any(y is None for y in ys): continue
+    ax.plot(range(len(levels)), ys, color=col[l], lw=2.2, marker="o", ms=5, label=n)
+    for i, y in enumerate(ys): ax.annotate(f"{y:.0f}", (i, y), textcoords="offset points", xytext=(0, 8 if l == d else -13), ha="center", fontsize=8, color=INK)
+ax.set_xticks(range(len(levels))); ax.set_xticklabels([f"C{c}" for c in levels]); ax.set_title("Peak ceiling only: counting prompt, max draft acceptance. Not a decode number.", loc="left", fontsize=11, fontweight="bold", color=INK); ax.grid(axis="y", color=RULE, lw=0.6); ax.spines[["top","right"]].set_visible(False); ax.legend(frameon=False, labelcolor=INK)
+fig2.text(0.01, 0.01, "count from 1 to 300, aggregate tok/s, median of 2 rounds · reads 2 to 3× higher than prose · kept for comparability with older posts", fontsize=9, color=MUT)
+fig2.tight_layout(rect=(0, 0.05, 1, 1)); fig2.savefig("results/chart_h2h_ceiling.png"); print("-> results/chart_h2h_ceiling.png")

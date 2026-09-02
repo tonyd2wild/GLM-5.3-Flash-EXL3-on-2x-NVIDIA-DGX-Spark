@@ -29,7 +29,7 @@ Counting-prompt numbers below are the speculative-decode ceiling (the drafter's 
 | quality probe | correct | correct | tie |
 | boot: launch → /health 200 | 23 min (worker loads over NFS from head (Reddie page cache warm), TileLang cache partly warm) | 13 min (local weights both nodes, warm trellis JIT cache) | |
 
-## Sweep c1–c6 (3 rounds per level)
+## Peak ceiling: counting prompt c1–c6 (3 rounds per level; max draft acceptance, not a decode number)
 | c | NVFP4 agg | per-stream | wall-to-wall | TTFT (fresh) | EXL3 agg | per-stream | wall-to-wall | TTFT (fresh) |
 |---|---|---|---|---|---|---|---|---|
 | 1 | 64.3 | 64.3 | 4.98 s | 1.29 s | 61.8 | 61.8 | 5.18 s | 2.31 s |

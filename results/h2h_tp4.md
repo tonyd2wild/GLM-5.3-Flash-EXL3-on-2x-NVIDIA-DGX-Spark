@@ -14,37 +14,7 @@ Each model alone on all four Sparks (TP4), max-num-seqs 64, CUDA graphs on, k=5 
 | first token, fresh 1.6K prompt, C1 / C16 | 0.94 / 9.99 s | 0.91 / 11.06 s |
 | cold prefill, fresh 211K prompt | 4,865 tok/s | 4,840 tok/s |
 
-Counting-prompt numbers below are the speculative-decode ceiling (the drafter's easiest sequence), kept for comparability with earlier runs, not the headline.
-
-### Aggregate tok/s vs concurrency (counting prompt = speculative-decode ceiling, ~300-token answers, median of 2 rounds)
-
-| C | DeepSeek | GLM | GLM vs DeepSeek |
-|---|---|---|---|
-| 1 | 95.2 | 100.3 | +5% |
-| 2 | 171.0 | 121.3 | -29% |
-| 3 | 214.9 | 193.1 | -10% |
-| 4 | 290.2 | 246.2 | -15% |
-| 5 | 266.3 | 289.9 | +9% |
-| 6 | 367.9 | 307.8 | -16% |
-| 8 | 465.8 | 364.6 | -22% |
-| 16 | 586.3 | 391.7 | -33% |
-| 32 | 854.5 | 594.9 | -30% |
-| 48 | 1,073.2 | 816.8 | -24% |
-
-### Per-stream tok/s vs concurrency
-
-| C | DeepSeek | GLM |
-|---|---|---|
-| 1 | 95.2 | 100.3 |
-| 2 | 85.5 | 60.6 |
-| 3 | 73.7 | 64.8 |
-| 4 | 74.0 | 63.6 |
-| 5 | 54.2 | 58.6 |
-| 6 | 62.5 | 52.8 |
-| 8 | 59.2 | 46.3 |
-| 16 | 37.3 | 25.0 |
-| 32 | 27.9 | 19.1 |
-| 48 | 23.7 | 17.3 |
+Every number above and in the chart is from real prompts. The counting-prompt ladder is at the bottom, labeled as the draft-acceptance ceiling.
 
 ### Time to first token, fresh 1.6K prompts (s, median)
 
@@ -94,10 +64,42 @@ Counting-prompt numbers below are the speculative-decode ceiling (the drafter's 
 | four-node GPU power | 177.9 W | 156.0 W |
 | tokens per joule | 3.06 | 2.99 |
 
+### Peak ceiling: the counting prompt (max draft acceptance, NOT a typical number)
+
+One prompt, count from 1 to 300, ~300 tokens of the easiest sequence a speculative drafter can guess. It is what most Spark posts quote as decode speed and it reads 2 to 3× higher than prose. Kept here only as the acceptance ceiling of each drafter.
+
+| C | DeepSeek | GLM | GLM vs DeepSeek |
+|---|---|---|---|
+| 1 | 95.2 | 100.3 | +5% |
+| 2 | 171.0 | 121.3 | -29% |
+| 3 | 214.9 | 193.1 | -10% |
+| 4 | 290.2 | 246.2 | -15% |
+| 5 | 266.3 | 289.9 | +9% |
+| 6 | 367.9 | 307.8 | -16% |
+| 8 | 465.8 | 364.6 | -22% |
+| 16 | 586.3 | 391.7 | -33% |
+| 32 | 854.5 | 594.9 | -30% |
+| 48 | 1,073.2 | 816.8 | -24% |
+
+| C | DeepSeek per stream | GLM per stream |
+|---|---|---|
+| 1 | 95.2 | 100.3 |
+| 2 | 85.5 | 60.6 |
+| 3 | 73.7 | 64.8 |
+| 4 | 74.0 | 63.6 |
+| 5 | 54.2 | 58.6 |
+| 6 | 62.5 | 52.8 |
+| 8 | 59.2 | 46.3 |
+| 16 | 37.3 | 25.0 |
+| 32 | 27.9 | 19.1 |
+| 48 | 23.7 | 17.3 |
+
 ### Verdict (computed from the rows above)
 
-- Single stream (counting, n=5): DeepSeek 97.4 vs GLM 99.9 tok/s (+3% for GLM).
-- Peak aggregate: DeepSeek 1,073.2 at C48; GLM 816.8 at C48. First level where the next step gains under 5%: DeepSeek C4, GLM none through C48 (the DeepSeek C5 dip is a two-round median artifact; C6 and up climb again).
-- C48 aggregate: DeepSeek 1,073.2 vs GLM 816.8 (-24% for GLM).
-- Real prompts C1 decode: DeepSeek 74.2 vs GLM 63.8 tok/s; prose: DeepSeek 42.0 vs GLM 31.2; coding: 98.3 vs 75.1.
-- Quality on the 40 prompts (same noise band as always, ±4 pts run to run): DeepSeek 87% vs GLM 81%.
+- Real prompts, single stream: DeepSeek 74.2 vs GLM 63.8 tok/s median over 40 prompts; prose 42.0 vs 31.2; narrative 44.8 vs 32.4; code 98.3 vs 75.1.
+- Real prompts under load: C4 aggregate 94.2 vs 73.5 tok/s (first token 0.34 vs 0.94 s); C16 123.9 vs 100.0 (first token 0.90 vs 2.18 s).
+- Quality on the 40 prompts (±4 pts run to run): DeepSeek 87% vs GLM 81% at C1; 89% vs 90% at C16.
+- Cold prefill, fresh 182K prompt: DeepSeek 4,865 vs GLM 4,840 tok/s; DeepSeek reaches its plateau by 14K, GLM climbs to it.
+- Tokens per joule at C16: DeepSeek 3.06 vs GLM 2.99.
+- Ceiling only (counting prompt): C1 97.4 vs 99.9 tok/s, C48 1,073.2 vs 816.8. Not a decode number.
+
