@@ -67,3 +67,17 @@ NVFP4 for fresh single-shot work. EXL3 for agents that re-send long context ever
 
 Showdown card (our numbers, showdown layout, charcoal/white): results/showdown_nvfp4_vs_exl3.png
 Colorful 5:2 cover for the X Article: results/cover_5x2_color.png
+
+## Vision-test card (DS4 vs GLM TP4), 2026-09-02
+
+Can you read the bottom line? 👁️
+
+DeepSeek V4 Flash Vision vs GLM-5.3-Flash, both TP4 across 4x DGX Spark, same 40 real prompts, back to back.
+
+Code 98 vs 75 tok/s. Prose 42 vs 31. 16 agents in flight: 124 vs 100. KV pool 8.3M vs 3.8M tokens.
+
+No count-to-100 in the headline. It's on the 20/20 line where it belongs: a drafter ceiling, not decode.
+
+Full recipe, prompts, JSON and chart in the repo 👇
+
+(reply) github.com/tonyd2wild/GLM-5.3-Flash-EXL3-on-2x-NVIDIA-DGX-Spark · results/h2h_tp4.md · credit: DeepSeek, Z.ai, vLLM, KEYS (DSpark), incoai (DFlash2)
