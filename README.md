@@ -8,29 +8,33 @@ This repo documents *our* bring-up on the 2Wild Spark cluster (nodes **Bluey** +
 It stands on the shoulders of the people credited below — start with their repos; this is
 the delta that made it run on our hardware.
 
-> Status: private. Internal 2Wild infra notes. Do not distribute the credential-bearing
-> `.env` (only `.env.example` is committed).
+> Status: public (MIT). The write-up, the 40-prompt battery, the TP4 postscripts and the DeepSeek-vs-GLM head-to-head are in `docs/article.html` and `results/`. Only `.env.example` is committed; never commit a credential-bearing `.env`.
 
 ---
 
-## Why EXL3 here
+## Why EXL3 here, and what we measured
 
-We already run GLM-5.3-Flash in **NVFP4** (marlin, fp8 KV) on the 4-Spark ring. EXL3
-(turboderp's ExLlamaV3, trellis / QTIP quant) trades a bit of engine complexity for
-**materially better quality per bit**:
+We already run GLM-5.3-Flash in **NVFP4** (marlin, fp8 KV) on the Spark ring. EXL3 (turboderp's
+ExLlamaV3, trellis / QTIP quant) was brought up on the other pair to test the published claim
+that a 4-bit EXL3 keeps FP8-level quality. Published KLD-vs-FP16 figures put EXL3/TR3 4bpw near
+0.025 and NVFP4 near 0.060; what that is worth on real tasks is what this repo measures.
 
-| Quant | bits | KLD vs FP16 | Notes |
-|-------|------|-------------|-------|
-| FP8   | 8    | ~0.025      | reference-ish, 2x the bytes |
-| **EXL3 / TR3** | **~4** | **~0.025** | ties FP8 quality at ~half the bytes |
-| NVFP4 | ~4   | ~0.060      | faster kernels, more quant drift |
+**Measured, 2026-09-01, both lanes isolated and benched in the same minute (`results/`, `docs/article.html`):**
 
-The difference is not casual chat — it shows up on hard code, multi-step reasoning,
-tool-calling accuracy, and long-context coherence. Speed is roughly a wash single-stream on
-GB10; EXL3 tends to edge ahead in aggregate throughput at concurrency. We keep both lanes and
-bench head-to-head (see `BENCH.md`).
+| | NVFP4 (Reddie + Spark4) | EXL3 (Bluey + Asusi) |
+|---|---|---|
+| prose decode, single stream, real prompts | 18.8 tok/s | 19.1 tok/s |
+| code decode, single stream, real prompts | 52.2 tok/s | 48.6 tok/s |
+| mixed load, four real prompts in flight | 31.4 tok/s, first token 1.97 s | 43.4 tok/s, first token 0.66 s |
+| first token, fresh 1.6K prompt, c1 / c6 | 1.29 / 4.53 s | 2.31 / 9.82 s |
+| cold prefill, fresh 211K prompt | 2,763 tok/s | 1,752 tok/s |
+| 211K context replayed from the prefix cache | 9.2 s | 0.8 s |
+| quality, 40 real prompts (3 runs, temp 0) | 81 to 88 % | 79 to 87 % |
+| context / KV pool | 262K / 295K tokens | 1M / 1.40M tokens |
 
----
+Quality is a tie inside the run-to-run noise. NVFP4 is faster on fresh work; EXL3 wins cached
+context, mixed load and headroom. Counting-prompt numbers ("count to 300", the drafter's easiest
+sequence) appear in the results only as a labeled ceiling, never as the decode figure.
 
 ## Topology (our cluster)
 
