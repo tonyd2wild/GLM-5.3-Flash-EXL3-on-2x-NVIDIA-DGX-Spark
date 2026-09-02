@@ -261,3 +261,23 @@ CREDITS AND LINKS
 NVFP4 recipe: github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-DFlash2-2x-DGX-Spark
 EXL3 kit: Reederey87's glm53-flash-exl3-2x-dgx-spark, weights by brandonmusic (GLM-5.3-Flash-tr3-4bpw), exllamav3 by turboderp, DFlash2 by IncoAI, NVFP4 weights by RedHatAI, GLM-5.3-Flash by zai-org. Thanks to dfi, Zeus and Mia for pushing on version one.
 Our repo with the fixes, every tool, the raw JSON for every number here and this write-up: github.com/tonyd2wild/GLM-5.3-Flash-EXL3-on-2x-NVIDIA-DGX-Spark
+
+
+POSTSCRIPT: THE SAME NVFP4 ACROSS ALL FOUR SPARKS (TP4)
+
+After the two-lane comparison, both lanes came down and the RedHat NVFP4 build went back up as one tensor-parallel group across all four Sparks, CUDA graphs on, 1M context, 3.8M-token KV pool, 13 minutes to healthy. The whole battery above ran against it, same tools, same prompts, same isolation. Not a like-for-like lane, it uses all four boxes; read it as what the hardware does when you stop splitting it.
+
+[IMAGE: chart_tp4.png]
+
+TP4 vs the NVFP4 TP2 lane
+• Single stream: 101.9 vs 64.0 tok/s (+59%)
+• c6 aggregate: 319 vs 136 tok/s (+134%); per stream 54.8 vs 35.0
+• Real prompts, median decode: 61 vs 42 tok/s (+46%); JSON 87, HTML 94, code 58, prose 26
+• Mixed load, four real prompts in flight: 72 vs 31 tok/s, first token 0.68 vs 1.97 s
+• Agent loop, 30K document, 10 turns: 58 s vs 107 s total, 1.8 vs 4.0 s per turn
+• First token, fresh 1.6K prompt: 0.91 vs 1.29 s at c1, 4.2 vs 4.5 s at c6; prefill 1,736 vs 1,225 tok/s
+• Cold prefill at length goes the other way: 882 tok/s at 55K and 1,670 at 211K, vs 2,384 and 2,763 on TP2. Every layer now synchronizes four nodes over one RoCE rail instead of two.
+• Power: 243 tok/s under load at 102 W of GPU power across four nodes, 2.4 tokens per joule, identical to TP2. Twice the boxes, twice the speed, same efficiency.
+• Quality: 83 / 87 / 83% across three runs of the 40 prompts (TP2 was 86 / 88 / 81), thinking on 96%, 12-item battery 11/12 off and 12/12 on. Same model, same noise band.
+
+If you have four Sparks and one model, run it as one group: decode scales almost linearly and the agent loop halves. Split into two lanes when you need two different models, or when long-prompt prefill is the bottleneck.

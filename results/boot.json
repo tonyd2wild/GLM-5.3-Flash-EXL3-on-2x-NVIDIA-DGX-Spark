@@ -13,5 +13,11 @@
   "weight_load_s": 322,
   "note": "worker loads over NFS from head (Reddie page cache warm), TileLang cache partly warm"
  },
- "_note": "times are US Eastern (Telegram tags and container logs are UTC = ET + 4h)"
+ "_note": "times are US Eastern (Telegram tags and container logs are UTC = ET + 4h)",
+ "nvfp4tp4": {
+  "launch": "2026-09-01 21:02:47 ET",
+  "serve": "see poller",
+  "min": 13,
+  "note": "TP4, CUDA graphs FULL_AND_PIECEWISE, workers over NFS from Reddie, page-cache flusher during load"
+ }
 }

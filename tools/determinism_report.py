@@ -7,7 +7,8 @@ answer text was byte-identical across runs, whether the auto score changed, and 
 is not batch-invariant on either engine; this puts a number on it.
 """
 import json, os, statistics
-L = ("nvfp4", "exl3"); out = {}
+import sys
+L = tuple(sys.argv[1:]) if len(sys.argv) > 1 else ("nvfp4", "exl3"); out = {}
 for l in L:
     runs = [p for p in [f"results/categories_{l}_off_c1.json", f"results/categories_{l}_off_c1_run2.json", f"results/categories_{l}_off_c1_run3.json"] if os.path.exists(p)]
     if len(runs) < 2: print(f"[{l}] fewer than 2 runs, skipping"); continue
@@ -25,4 +26,5 @@ for l in L:
               "score_flip_ids": score_flip, "auto_score_per_run": scores, "token_spread_median": int(statistics.median(tok_spread)), "token_spread_max": max(tok_spread), "by_category": by_cat}
     print(f"[{l}] {len(runs)} runs: {ident}/{len(ids)} outputs byte-identical ({out[l]['identical_pct']}%), {len(score_flip)} score flips {score_flip}, auto score per run {scores}, token spread median {out[l]['token_spread_median']} max {max(tok_spread)}")
     for c, b in by_cat.items(): print(f"    {c:10} identical {b['identical']}/{b['n']}  score flips {b['score_flips']}")
-json.dump(out, open("results/determinism.json", "w"), indent=1); print("-> results/determinism.json")
+path = "results/determinism.json" if L == ("nvfp4", "exl3") else f"results/determinism_{'_'.join(L)}.json"
+json.dump(out, open(path, "w"), indent=1); print("->", path)

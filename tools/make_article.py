@@ -89,6 +89,17 @@ CAT_SECTION_HTML = (f"""<h2>Real prompts: coding, reasoning, JSON, HTML, prose, 
 {CAT_HTML}
 """ if CAT_HTML else "")
 CAT_SECTION_MD = ("\n" + CAT_MD + "\n") if CAT_MD else ""
+
+TP4_MD = open("results/tp4_vs_tp2.md").read() if os.path.exists("results/tp4_vs_tp2.md") else ""
+TP4_HTML = md_to_html(TP4_MD) if TP4_MD else ""
+TP4_CHART = (f'<figure><img src="{b64("results/chart_tp4.png")}" alt="Aggregate, per-stream and fresh-prompt TTFT versus concurrency for NVFP4 TP4, NVFP4 TP2 and EXL3 TP2."><figcaption>NVFP4 across all four Sparks (TP4, CUDA graphs) against the two two-node lanes, same tools and prompts, later the same night.</figcaption></figure>' if os.path.exists("results/chart_tp4.png") else "")
+TP4_SECTION_HTML = (f"""<h2>Postscript: the same NVFP4 across all four Sparks (TP4)</h2>
+<p>After the two-lane comparison, both lanes came down and the RedHat NVFP4 build went back up as one tensor-parallel group across all four Sparks, with CUDA graphs on (the recipe validated on 08-31), 1M context, and the whole battery above run against it. Same tools, same prompts, same isolation. It is not a like-for-like lane (it uses all four boxes), so read it as what the hardware does when you stop splitting it.</p>
+{TP4_CHART}
+{TP4_HTML}
+<p>Two things stand out. Decode scales almost linearly with the second pair of boxes: single stream +59%, six streams +134%, real prompts +46%, and the 30K-document agent loop finishes in half the time, at the same tokens per joule as TP2 (twice the boxes, twice the speed, same efficiency). And prefill at length goes the other way: a fresh 211K-token prompt prefills at 1,670 tok/s on TP4 against 2,763 on TP2, because every layer now synchronizes four nodes over one RoCE rail instead of two. Quality lands in the same run-to-run band as every other lane in this article.</p>
+""" if TP4_HTML else "")
+TP4_SECTION_MD = ("\n" + TP4_MD + "\n") if TP4_MD else ""
 ISO = json.load(open("results/isolation.json")) if os.path.exists("results/isolation.json") else {}
 iso_txt = (f" This run: NVFP4 head {ISO['nvfp4_head'].get('100.91.157.18','?')} chat POSTs, all from the bench client; EXL3 head {ISO['exl3_head'].get('100.91.157.18','?')} from the bench client, and the only other traffic in the 30-minute log window was the kit's own post-serve warm-up burst of {ISO['exl3_head'].get('127.0.0.1',0)} requests at 17:16 ET, fifteen minutes before the tests began." if ISO else "")
 e1, n1, e6, n6 = er[0], nr[0], er[-1], nr[-1]
@@ -280,6 +291,7 @@ a{{color:var(--ink);text-decoration-color:var(--rule);text-underline-offset:3px}
 <p>Re-measured with a different prompt for every request: time to first token at c1 is NVFP4 {n1['ttft_med_s']} s versus EXL3 {e1['ttft_med_s']} s, and at c6 {nr[-1]['ttft_med_s']} s versus {er[-1]['ttft_med_s']} s; fresh prefill is {n1['prefill_tok_s']:,} versus {e1['prefill_tok_s']:,} tok/s. On a fresh {pl_tok}-token prompt NVFP4 prefills at {pl_n} tok/s to EXL3's {pl_e}. EXL3 also pays a one-time compile of several seconds the first time it sees a new prompt-length bucket ({', '.join(str(x) + ' s' for x in e1.get('jit_first', []))} on its two warm-up requests here, up to 7.8 s observed at a new length).</p>
 <p>What EXL3 keeps is real and it matters for agents: the cache itself ({rep_txt}), a {C4['exl3']['agg_tok_s_med'] if C4['exl3'] else '—'} tok/s aggregate against {C4['nvfp4']['agg_tok_s_med'] if C4['nvfp4'] else '—'} under a mixed load of four short real prompts with a first token in {C4['exl3']['ttft_med_s'] if C4['exl3'] else '—'} s against {C4['nvfp4']['ttft_med_s'] if C4['nvfp4'] else '—'} s, 4× the context, 4.7× the KV pool, and a 13-minute boot. An agent that re-sends the same long context every turn lives in the cached case. A fresh single-shot request lives in the other one.</p>
 {CAT_SECTION_HTML}
+{TP4_SECTION_HTML}
 <p><b>Boot and load time.</b> Measured on this same-state run from launch command to first <code>/health</code> 200: EXL3 {boot('exl3')}; NVFP4 {boot('nvfp4')}. NVFP4's worker reads its weights over NFS from the head on this cluster (no local copy of the base on Spark4); a local copy would put it closer to the recipe's ~15 min. Both lanes JIT-compile kernels on first boot; a wiped cache adds minutes to either.</p>
 <p><b>Memory.</b> Each lane holds ~91 GiB of weights per 121 GiB node; every failure we hit was a transient spike on top of that baseline. Drop caches on every node before every launch; <code>free -g</code> under-reports on GB10.</p>
 
@@ -410,6 +422,7 @@ Published KLD: EXL3/TR3 4bpw ~0.025 (ties FP8), NVFP4 ~0.060. Twelve items is a 
 The first version said EXL3 "answers first" ({e1.get('ttft_repeat_s','—')} vs {n1.get('ttft_repeat_s','—')} s at c1; prefill {e1.get('prefill_repeat','—')} vs {n1.get('prefill_repeat','—')} tok/s). Every request carried the same prompt; EXL3 replayed its prefix cache, NVFP4 (2,304-token cache blocks) recomputed. Fresh prompts: TTFT c1 NVFP4 {n1['ttft_med_s']} s vs EXL3 {e1['ttft_med_s']} s, c6 {nr[-1]['ttft_med_s']} vs {er[-1]['ttft_med_s']} s; fresh prefill {n1['prefill_tok_s']:,} vs {e1['prefill_tok_s']:,} tok/s; cold prefill at {pl_tok} tokens {pl_n} vs {pl_e} tok/s. EXL3 keeps: the cache ({rep_txt}), mixed real-prompt load ({c4_txt}), 4× context, 4.7× KV, 13-min boot.
 
 {CAT_SECTION_MD}
+{TP4_SECTION_MD}
 ## Boot and load time
 Launch command → first `/health` 200, this run: EXL3 {boot('exl3')}; NVFP4 {boot('nvfp4')}. NVFP4's worker reads its
 weights over NFS from the head on this cluster (no local copy of the base on Spark4). Both JIT-compile on first boot.

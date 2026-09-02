@@ -1,0 +1,44 @@
+{
+ "lane": "nvfp4tp4",
+ "model": "glm-5.3-flash",
+ "tokens": 1600,
+ "rounds": 3,
+ "jit_first_s": [
+  0.86,
+  0.91
+ ],
+ "rows": [
+  {
+   "c": 1,
+   "ttft_med_s": 0.91,
+   "prompt_tokens": 1582,
+   "prefill_tok_s": 1736
+  },
+  {
+   "c": 2,
+   "ttft_med_s": 1.57,
+   "prompt_tokens": 1586
+  },
+  {
+   "c": 3,
+   "ttft_med_s": 2.26,
+   "prompt_tokens": 1572
+  },
+  {
+   "c": 4,
+   "ttft_med_s": 2.9,
+   "prompt_tokens": 1583
+  },
+  {
+   "c": 5,
+   "ttft_med_s": 3.54,
+   "prompt_tokens": 1569
+  },
+  {
+   "c": 6,
+   "ttft_med_s": 4.2,
+   "prompt_tokens": 1588
+  }
+ ],
+ "ts": "2026-09-01 21:25"
+}

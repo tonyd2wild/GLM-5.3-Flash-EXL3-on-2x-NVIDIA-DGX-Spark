@@ -1,0 +1,65 @@
+{
+ "nvfp4tp4": {
+  "runs": 3,
+  "n": 40,
+  "identical_outputs": 10,
+  "identical_pct": 25,
+  "score_flips": 5,
+  "score_flip_ids": [
+   "prose1",
+   "prose4",
+   "story1",
+   "story4",
+   "sum2"
+  ],
+  "auto_score_per_run": [
+   0.828,
+   0.87,
+   0.828
+  ],
+  "token_spread_median": 22,
+  "token_spread_max": 738,
+  "by_category": {
+   "coding": {
+    "n": 5,
+    "identical": 1,
+    "score_flips": 0
+   },
+   "reasoning": {
+    "n": 5,
+    "identical": 0,
+    "score_flips": 0
+   },
+   "json": {
+    "n": 5,
+    "identical": 5,
+    "score_flips": 0
+   },
+   "html": {
+    "n": 5,
+    "identical": 1,
+    "score_flips": 0
+   },
+   "prose": {
+    "n": 5,
+    "identical": 0,
+    "score_flips": 2
+   },
+   "narrative": {
+    "n": 5,
+    "identical": 0,
+    "score_flips": 2
+   },
+   "summary": {
+    "n": 5,
+    "identical": 0,
+    "score_flips": 1
+   },
+   "format": {
+    "n": 5,
+    "identical": 3,
+    "score_flips": 0
+   }
+  }
+ }
+}

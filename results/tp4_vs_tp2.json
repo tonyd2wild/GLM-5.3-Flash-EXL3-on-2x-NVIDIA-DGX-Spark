@@ -1,0 +1,192 @@
+{
+ "rows": [
+  {
+   "metric": "c1 single-stream tok/s (sweep)",
+   "tp4": 101.1,
+   "tp2": 64.3,
+   "exl3": 61.8,
+   "gain": "+57%"
+  },
+  {
+   "metric": "c1 single-stream tok/s (detailed, n=5)",
+   "tp4": 101.9,
+   "tp2": 64.0,
+   "exl3": 61.5,
+   "gain": "+59%"
+  },
+  {
+   "metric": "c6 aggregate tok/s",
+   "tp4": 319.1,
+   "tp2": 136.3,
+   "exl3": 125.2,
+   "gain": "+134%"
+  },
+  {
+   "metric": "c6 per-stream tok/s",
+   "tp4": 54.8,
+   "tp2": 35.0,
+   "exl3": 35.8,
+   "gain": "+57%"
+  },
+  {
+   "metric": "peak aggregate tok/s",
+   "tp4": 319.1,
+   "tp2": 138.6,
+   "exl3": 149.7,
+   "gain": "+130%"
+  },
+  {
+   "metric": "TTFT fresh 1.6K prompt, c1 (s)",
+   "tp4": 0.91,
+   "tp2": 1.29,
+   "exl3": 2.31,
+   "gain": "-29% (lower is better)"
+  },
+  {
+   "metric": "TTFT fresh, c6 (s)",
+   "tp4": 4.2,
+   "tp2": 4.53,
+   "exl3": 9.82,
+   "gain": "-7% (lower is better)"
+  },
+  {
+   "metric": "prefill fresh 1.6K tok/s",
+   "tp4": 1736,
+   "tp2": 1225,
+   "exl3": 684,
+   "gain": "+42%"
+  },
+  {
+   "metric": "cold prefill at ~211K tok/s",
+   "tp4": 1670,
+   "tp2": 2763,
+   "exl3": 1752,
+   "gain": "-40%"
+  },
+  {
+   "metric": "wall-to-wall c1 / c6 (s)",
+   "tp4": "3.17 / 5.84",
+   "tp2": "4.98 / 10.09",
+   "exl3": "5.18 / 8.95",
+   "gain": ""
+  },
+  {
+   "metric": "real prompts auto score, thinking off",
+   "tp4": 0.828,
+   "tp2": 0.855,
+   "exl3": 0.846,
+   "gain": "-3%"
+  },
+  {
+   "metric": "real prompts median decode tok/s",
+   "tp4": 61.0,
+   "tp2": 41.9,
+   "exl3": 38.4,
+   "gain": "+46%"
+  },
+  {
+   "metric": "mixed c4 aggregate tok/s / TTFT s",
+   "tp4": "72.3 / 0.68",
+   "tp2": "31.4 / 1.97",
+   "exl3": "43.4 / 0.66",
+   "gain": ""
+  },
+  {
+   "metric": "thinking on auto score",
+   "tp4": 0.963,
+   "tp2": 0.963,
+   "exl3": 0.938,
+   "gain": "+0%"
+  },
+  {
+   "metric": "agent loop 30K doc: TTFT med s / total s",
+   "tp4": "1.83 / 57.7",
+   "tp2": "4.04 / 106.7",
+   "exl3": "1.02 / 99.3",
+   "gain": ""
+  },
+  {
+   "metric": "12-item battery off / on",
+   "tp4": "11/12 / 12/12",
+   "tp2": "11/12 / 12/12",
+   "exl3": "11/12 / 12/12",
+   "gain": ""
+  },
+  {
+   "metric": "load throughput tok/s (c4 counting, 60 s)",
+   "tp4": 242.8,
+   "tp2": 123.0,
+   "exl3": 138.6,
+   "gain": "+97%"
+  },
+  {
+   "metric": "lane GPU power W (all nodes)",
+   "tp4": 101.9,
+   "tp2": 50.7,
+   "exl3": 68.1,
+   "gain": "+101% (lower is better)"
+  },
+  {
+   "metric": "tokens per joule",
+   "tp4": 2.38,
+   "tp2": 2.43,
+   "exl3": 2.04,
+   "gain": "-2%"
+  },
+  {
+   "metric": "boot launch \u2192 healthy (min)",
+   "tp4": 13,
+   "tp2": 23,
+   "exl3": 13,
+   "gain": "-43% (lower is better)"
+  }
+ ],
+ "determinism": {
+  "nvfp4tp4": {
+   "runs": 3,
+   "identical": 10,
+   "n": 40,
+   "scores": [
+    0.828,
+    0.87,
+    0.828
+   ]
+  },
+  "nvfp4": {
+   "runs": 3,
+   "identical": 10,
+   "n": 40,
+   "scores": [
+    0.855,
+    0.876,
+    0.81
+   ]
+  },
+  "exl3": {
+   "runs": 3,
+   "identical": 9,
+   "n": 40,
+   "scores": [
+    0.846,
+    0.789,
+    0.815
+   ]
+  }
+ },
+ "node_watts": {
+  "nvfp4tp4": [
+   26.9,
+   24.8,
+   24.5,
+   25.7
+  ],
+  "nvfp4": [
+   26.5,
+   24.2
+  ],
+  "exl3": [
+   34.9,
+   33.2
+  ]
+ }
+}
