@@ -9,6 +9,7 @@ off, temp 0; TTFT ~= wall. Writes results/ttft_fresh_<lane>.json.
 import sys, json, time, statistics, argparse, urllib.request, concurrent.futures, random
 ap = argparse.ArgumentParser(); ap.add_argument("base"); ap.add_argument("model"); ap.add_argument("lane")
 ap.add_argument("--max-c", type=int, default=6); ap.add_argument("--rounds", type=int, default=3); ap.add_argument("--tokens", type=int, default=1600)
+ap.add_argument("--levels", default="", help="explicit concurrency ladder, e.g. 1,8,16 (overrides --max-c)")
 a = ap.parse_args(); URL = a.base.rstrip("/") + "/v1/chat/completions"
 WORDS = ("spark memory fabric tensor kernel cache latency decode prefill batch token weight shard rail switch clock thermal driver socket buffer "
          "queue stream layer expert router gate norm bias scale block page pool lease probe trace sample median spread round warm cold").split()
@@ -26,7 +27,7 @@ def call(p):
 jit = [call(fresh_prompt())[1] for _ in range(2)]
 print(f"  [{a.lane}] warm-up (fresh prompts): {jit[0]:.2f}s, {jit[1]:.2f}s", flush=True)
 rows = []
-for c in range(1, a.max_c + 1):
+for c in ([int(x) for x in a.levels.split(',')] if a.levels else range(1, a.max_c + 1)):
     meds = []; pts = []
     for _ in range(a.rounds):
         ps = [fresh_prompt() for _ in range(c)]

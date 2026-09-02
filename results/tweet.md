@@ -9,7 +9,7 @@ NVFP4 vs EXL3. Same model, same boxes, same minute.
 
 GLM-5.3-Flash on 2× DGX Spark per lane, TP2 each, both lanes benched simultaneously at c1 to c6, nothing else touching either.
 
-NVFP4 wins decode: 64.0 vs 61.5 tok/s single stream, +14 to 30% per stream at c2 to c5, faster wall-to-wall through c5.
+Real-prompt decode is a tie: prose 18.8 vs 19.1, code 52.2 vs 48.6 tok/s. On the counting prompt (the spec-decode ceiling) NVFP4 leads 64.0 vs 61.5 and +14 to 30% per stream at c2 to c5.
 
 EXL3 wins the first token: 1.0 s vs 4.6 s TTFT at c6, prefill 2.9× (3,099 vs 1,055 tok/s), 1M context and 4.7× the KV pool on the same two boxes, boots in 13 min vs 23.
 
@@ -37,7 +37,7 @@ Everyone kept saying EXL3 beats NVFP4. So we ran both on the same model, the sam
 
 GLM-5.3-Flash, two 4-bit quants, two 2-node TP2 lanes, c1 to c6, nothing else touching either lane.
 
-NVFP4 decodes faster: 64.0 vs 61.5 tok/s single stream, +14 to 30% per stream under load.
+Real-prompt decode ties (prose 18.8 vs 19.1, code 52.2 vs 48.6 tok/s); NVFP4 leads only on the counting ceiling, 64.0 vs 61.5.
 
 EXL3 gets you the first token 4.5x sooner at c6 (1.0 s vs 4.6 s), prefills 2.9x faster, holds 1M context and 4.7x the KV pool on the same two boxes, and boots in 13 min instead of 23.
 

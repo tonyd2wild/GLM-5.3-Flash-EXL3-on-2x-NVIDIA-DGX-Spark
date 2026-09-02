@@ -100,6 +100,15 @@ TP4_SECTION_HTML = (f"""<h2>Postscript: the same NVFP4 across all four Sparks (T
 <p>Two things stand out. Decode scales almost linearly with the second pair of boxes: single stream +59%, six streams +134%, real prompts +46%, and the 30K-document agent loop finishes in half the time, at the same tokens per joule as TP2 (twice the boxes, twice the speed, same efficiency). And prefill at length goes the other way: a fresh 211K-token prompt prefills at 1,670 tok/s on TP4 against 2,763 on TP2, because every layer now synchronizes four nodes over one RoCE rail instead of two. Quality lands in the same run-to-run band as every other lane in this article.</p>
 """ if TP4_HTML else "")
 TP4_SECTION_MD = ("\n" + TP4_MD + "\n") if TP4_MD else ""
+H2H_MD = open("results/h2h_tp4.md").read() if os.path.exists("results/h2h_tp4.md") else ""
+H2H_HTML = md_to_html(H2H_MD) if H2H_MD else ""
+H2H_CHART = (f'<figure><img src="{b64("results/chart_h2h.png")}" alt="DeepSeek V4 Flash Vision versus GLM-5.3-Flash NVFP4, both at TP4 across four Sparks: aggregate and per-stream throughput versus concurrency, real-prompt decode by category, cold prefill versus prompt length."><figcaption>Both models alone on all four Sparks (TP4, CUDA graphs, max-num-seqs 64), same battery, back to back on 2026-09-02.</figcaption></figure>' if os.path.exists("results/chart_h2h.png") else "")
+H2H_SECTION_HTML = (f"""<h2>Postscript two: DeepSeek V4 Flash Vision vs GLM-5.3-Flash NVFP4, both at TP4</h2>
+<p>The question after the quant comparison was which model to run on all four boxes as the daily driver. So both got the same treatment: each model alone on the four-Spark ring, tensor-parallel 4, CUDA graphs on, max-num-seqs 64, 1M context, and the whole battery above, back to back, with the latency monitor paused and the relay parked. DeepSeek runs its DSpark drafter at k=5 with Patch 4; GLM runs DFlash2 at k=7. This section quotes decode from real prompts first and keeps the counting ladder as the labeled ceiling, and prefill is cold only.</p>
+{H2H_CHART}
+{H2H_HTML}
+""" if H2H_HTML else "")
+H2H_SECTION_MD = ("\n" + H2H_MD + "\n") if H2H_MD else ""
 ISO = json.load(open("results/isolation.json")) if os.path.exists("results/isolation.json") else {}
 iso_txt = (f" This run: NVFP4 head {ISO['nvfp4_head'].get('100.91.157.18','?')} chat POSTs, all from the bench client; EXL3 head {ISO['exl3_head'].get('100.91.157.18','?')} from the bench client, and the only other traffic in the 30-minute log window was the kit's own post-serve warm-up burst of {ISO['exl3_head'].get('127.0.0.1',0)} requests at 17:16 ET, fifteen minutes before the tests began." if ISO else "")
 e1, n1, e6, n6 = er[0], nr[0], er[-1], nr[-1]
@@ -127,6 +136,16 @@ PLN = {l: (json.load(open(f"results/prefill_len_{l}.json"))["rows"][-1] if os.pa
 pl_n = f"{PLN['nvfp4']['cold_tok_s']:,}" if PLN["nvfp4"] else "—"; pl_e = f"{PLN['exl3']['cold_tok_s']:,}" if PLN["exl3"] else "—"
 pl_tok = f"{PLN['nvfp4']['prompt_tokens']:,}" if PLN["nvfp4"] else "211K"
 pl_rep_n = f"{PLN['nvfp4']['warm_s']} s" if PLN["nvfp4"] else "—"; pl_rep_e = f"{PLN['exl3']['warm_s']} s" if PLN["exl3"] else "—"
+import statistics as _st
+def _cat_runs(l):
+    out = []
+    for suf in ("", "_run2", "_run3"):
+        f = f"results/categories_{l}_off_c1{suf}.json"
+        if os.path.exists(f): out.append(json.load(open(f))["summary"])
+    return out
+def _catmed(l, c): v = [x[c]["decode_med_tok_s"] for x in _cat_runs(l) if c in x]; return round(_st.median(v), 1) if v else None
+def _catrng(l, c): v = [x[c]["decode_med_tok_s"] for x in _cat_runs(l) if c in x]; return f"{min(v)}–{max(v)}" if v else "—"
+RP = {l: {"prose": _catmed(l, "prose"), "code": _catmed(l, "coding"), "prose_r": _catrng(l, "prose"), "code_r": _catrng(l, "coding"), "n": len(_cat_runs(l))} for l in ("exl3", "nvfp4")}
 C4 = {l: (json.load(open(f"results/categories_{l}_off_c4.json"))["overall"] if os.path.exists(f"results/categories_{l}_off_c4.json") else None) for l in ("exl3", "nvfp4")}
 c4_txt = (f"NVFP4 {C4['nvfp4']['agg_tok_s_med']} tok/s vs EXL3 {C4['exl3']['agg_tok_s_med']} tok/s aggregate, TTFT {C4['nvfp4']['ttft_med_s']} s vs {C4['exl3']['ttft_med_s']} s" if all(C4.values()) else "")
 rep_txt = (f"identical 1.6K prompt repeated: EXL3 {e1.get('ttft_repeat_s','—')} s vs NVFP4 {n1.get('ttft_repeat_s','—')} s at c1, {er[-1].get('ttft_repeat_s','—')} s vs {nr[-1].get('ttft_repeat_s','—')} s at c6; a {pl_tok}-token context replayed in {pl_rep_e} vs {pl_rep_n}")
@@ -157,7 +176,19 @@ sweep_rows = "".join(f"<tr><td>c{e['c']}</td><td>{n['agg_tok_s']}</td><td>{n['pe
                      f"<td>{e['agg_tok_s']}</td><td>{e['per_stream_tok_s']}</td><td>{e['w2w_med_s']} s</td><td>{e['ttft_med_s']} s</td></tr>" for e, n in zip(er, nr))
 md_rows = "\n".join(f"| {e['c']} | {n['agg_tok_s']} | {n['per_stream_tok_s']} | {n['w2w_med_s']} s | {n['ttft_med_s']} s | {e['agg_tok_s']} | {e['per_stream_tok_s']} | {e['w2w_med_s']} s | {e['ttft_med_s']} s |" for e, n in zip(er, nr))
 
-summary = f"""## Headline (isolated, both lanes benched simultaneously, {ts})
+rp_txt = (f"prose {RP['nvfp4']['prose']} vs {RP['exl3']['prose']} tok/s, code {RP['nvfp4']['code']} vs {RP['exl3']['code']} tok/s (NVFP4 vs EXL3, median of {RP['nvfp4']['n']} runs of the 40-prompt set)" if RP['nvfp4']['prose'] and RP['exl3']['prose'] else "")
+summary = f"""## Headline, real prompts (how we now quote decode: prose and code, not the counting prompt)
+| | NVFP4 (Reddie + Spark4) | EXL3 (Bluey + Asusi) |
+|---|---|---|
+| prose decode, c1, tok/s (median of {RP['nvfp4']['n']} runs; range) | {RP['nvfp4']['prose']} ({RP['nvfp4']['prose_r']}) | {RP['exl3']['prose']} ({RP['exl3']['prose_r']}) |
+| code decode, c1, tok/s (median of {RP['nvfp4']['n']} runs; range) | {RP['nvfp4']['code']} ({RP['nvfp4']['code_r']}) | {RP['exl3']['code']} ({RP['exl3']['code_r']}) |
+| mixed real-prompt load c4: aggregate tok/s / TTFT | {(str(C4['nvfp4']['agg_tok_s_med']) + ' / ' + str(C4['nvfp4']['ttft_med_s']) + ' s') if C4['nvfp4'] else '—'} | {(str(C4['exl3']['agg_tok_s_med']) + ' / ' + str(C4['exl3']['ttft_med_s']) + ' s') if C4['exl3'] else '—'} |
+| time to first token, fresh 1.6K prompts, c1 / c6 | {n1['ttft_med_s']} s / {n6['ttft_med_s']} s | {e1['ttft_med_s']} s / {e6['ttft_med_s']} s |
+| cold prefill, fresh {pl_tok}-token prompt, tok/s | {pl_n} | {pl_e} |
+
+Counting-prompt numbers below are the speculative-decode ceiling (the drafter's easiest sequence), kept for comparability with the recipes' own peak tests. Prefill is quoted cold only; cache replay has its own labeled row.
+
+## Counting prompt (speculative-decode ceiling), isolated, both lanes benched simultaneously, {ts}
 | | NVFP4 (Reddie + Spark4) | EXL3 (Bluey + Asusi) | EXL3 ÷ NVFP4 |
 |---|---|---|---|
 | c1 single-stream tok/s | {n1['agg_tok_s']} | {e1['agg_tok_s']} | {r(e1['agg_tok_s'], n1['agg_tok_s'])} |
@@ -222,13 +253,22 @@ a{{color:var(--ink);text-decoration-color:var(--rule);text-underline-offset:3px}
 <p class="sub">The same 320B MoE, GLM-5.3-Flash, in two 4-bit quantizations, on two independent 2-node DGX Spark pairs, benched at the same time in the same state, isolated from every other consumer. Full c1–c6 sweep: throughput, per-stream decode, time to first token, wall-to-wall latency, prefill, context, KV pool.</p>
 <div class="meta"><span>4× DGX Spark GB10 · 128 GB UMA</span><span>CX7 RoCE rail 0 · TP=2 per lane</span><span>vLLM · DFlash2 k=7 · fp8 KV</span><span>non-stream · temp 0 · thinking off</span><span>@tonyd2wild</span></div>
 <div class="stats">
-<div class="stat"><div class="n">{n1['agg_tok_s']} <span style="color:var(--muted)">/</span> {e1['agg_tok_s']}</div><div class="l">c1 single-stream tok/s, NVFP4 / EXL3 — {c1_lead if c1_lead!='tie' else 'tie'}{'' if c1_lead=='tie' else ' leads'}</div></div>
+<div class="stat"><div class="n">{RP['nvfp4']['prose']} <span style="color:var(--muted)">/</span> {RP['exl3']['prose']}</div><div class="l">prose decode tok/s on real prompts, NVFP4 / EXL3 (code: {RP['nvfp4']['code']} / {RP['exl3']['code']}); counting prompt {n1['agg_tok_s']} / {e1['agg_tok_s']} is the speculative-decode ceiling</div></div>
 <div class="stat"><div class="n">{pn} <span style="color:var(--muted)">/</span> {pe}</div><div class="l">peak aggregate tok/s, NVFP4 (c{pn_c}) / EXL3 (c{pe_c}) — {pk_lead if pk_lead!='tie' else 'tie'}{'' if pk_lead=='tie' else ' leads'}</div></div>
 <div class="stat"><div class="n">{r(KV['exl3'], KV['nvfp4'])}</div><div class="l">EXL3's KV pool ({KV['exl3']:,} vs {KV['nvfp4']:,} tokens) · 1M vs 256K context</div></div>
 </div>
-<p class="callout"><b>Result, same state.</b> All four nodes restarted together and verified at ~2,170–2,190 MHz under decode load. Single-stream decode: {c1_txt}. Peak aggregate: {pk_txt}. Per-stream at c6: {c6ps_txt}. Prefill on fresh 1.6K prompts: {pf_txt}; time to first token on fresh prompts at c1: {tt_txt}. Repeated context is EXL3's: {rep_txt}. Mixed real-prompt load at c4: {c4_txt}. Wall-to-wall at c6 (counting prompt): {w2w_txt}. EXL3 serves 4× the context with {r(KV['exl3'], KV['nvfp4'])} the KV pool on the same two boxes; boot to serve was EXL3 {boot('exl3')} vs NVFP4 {boot('nvfp4')}; the quality probe was {'a tie' if qe == qn else 'not a tie'}. An earlier run of this comparison that showed EXL3 ahead on every line was thrown out: NVFP4's nodes were clock-capped after a reboot. A second correction, made after publishing: the first version of this page measured time to first token and prefill by repeating one prompt, which EXL3 served from its prefix cache while NVFP4 recomputed it; those rows now use fresh prompts, and the old numbers are kept in their own row, labeled as what they are.</p>
+<p class="callout"><b>Result, same state.</b> All four nodes restarted together and verified at ~2,170–2,190 MHz under decode load. Decode on real prompts: {rp_txt}. Single-stream decode on the counting prompt (the speculative-decode ceiling): {c1_txt}. Peak aggregate: {pk_txt}. Per-stream at c6: {c6ps_txt}. Prefill on fresh 1.6K prompts: {pf_txt}; time to first token on fresh prompts at c1: {tt_txt}. Repeated context is EXL3's: {rep_txt}. Mixed real-prompt load at c4: {c4_txt}. Wall-to-wall at c6 (counting prompt): {w2w_txt}. EXL3 serves 4× the context with {r(KV['exl3'], KV['nvfp4'])} the KV pool on the same two boxes; boot to serve was EXL3 {boot('exl3')} vs NVFP4 {boot('nvfp4')}; the quality probe was {'a tie' if qe == qn else 'not a tie'}. An earlier run of this comparison that showed EXL3 ahead on every line was thrown out: NVFP4's nodes were clock-capped after a reboot. A second correction, made after publishing: the first version of this page measured time to first token and prefill by repeating one prompt, which EXL3 served from its prefix cache while NVFP4 recomputed it; those rows now use fresh prompts, and the old numbers are kept in their own row, labeled as what they are.</p>
 
 <h2>The headline table</h2>
+<p><b>How we quote speed (changed 2026-09-02, after a fair request from readers).</b> Decode is quoted from real prompts, prose and code, at c1 and under mixed load. The counting prompt ("count from 1 to 300") is kept as its own labeled row because it is the speculative drafter's easiest sequence and reads 2 to 3× higher than prose; it is a ceiling, not a typical number. Prefill is quoted cold only, from a fresh prompt at a fixed length; prefix-cache replay sits in its own labeled row and is never mixed into a prefill figure.</p>
+<div class="tw"><table><thead><tr><th>real prompts</th><th>NVFP4 · Reddie + Spark4</th><th>EXL3 · Bluey + Asusi</th><th>note</th></tr></thead><tbody>
+<tr><td>prose decode, c1, tok/s</td><td><b>{RP['nvfp4']['prose']}</b> ({RP['nvfp4']['prose_r']})</td><td><b>{RP['exl3']['prose']}</b> ({RP['exl3']['prose_r']})</td><td>median of {RP['nvfp4']['n']} runs of the 40-prompt set; range in brackets</td></tr>
+<tr><td>code decode, c1, tok/s</td><td><b>{RP['nvfp4']['code']}</b> ({RP['nvfp4']['code_r']})</td><td><b>{RP['exl3']['code']}</b> ({RP['exl3']['code_r']})</td><td>same runs</td></tr>
+<tr><td>mixed real-prompt load c4: aggregate tok/s / TTFT</td><td>{(str(C4['nvfp4']['agg_tok_s_med']) + ' / ' + str(C4['nvfp4']['ttft_med_s']) + ' s') if C4['nvfp4'] else '—'}</td><td>{(str(C4['exl3']['agg_tok_s_med']) + ' / ' + str(C4['exl3']['ttft_med_s']) + ' s') if C4['exl3'] else '—'}</td><td>four different prompts in flight</td></tr>
+<tr><td>time to first token, fresh 1.6K prompts, c1 / c6</td><td>{n1['ttft_med_s']} s / {n6['ttft_med_s']} s</td><td>{e1['ttft_med_s']} s / {e6['ttft_med_s']} s</td><td>different prompt per request</td></tr>
+<tr><td>cold prefill, fresh {pl_tok}-token prompt, tok/s</td><td>{pl_n}</td><td>{pl_e}</td><td>cold only; no cache top-up</td></tr>
+</tbody></table></div>
+<h3>Counting prompt: the speculative-decode ceiling, c1 to c6</h3>
 <div class="tw"><table><thead><tr><th></th><th>NVFP4 · Reddie + Spark4</th><th>EXL3 · Bluey + Asusi</th><th>EXL3 ÷ NVFP4</th></tr></thead><tbody>
 <tr><td>c1 single-stream, tok/s (3 rounds)</td><td>{n1['agg_tok_s']}</td><td>{e1['agg_tok_s']}</td><td>{r(e1['agg_tok_s'], n1['agg_tok_s'])}</td></tr>
 <tr><td>c1 spread, detailed run (n=5)</td><td>{spread(dn)} ({pct(dn)})</td><td>{spread(de)} ({pct(de)})</td><td></td></tr>
@@ -292,6 +332,7 @@ a{{color:var(--ink);text-decoration-color:var(--rule);text-underline-offset:3px}
 <p>What EXL3 keeps is real and it matters for agents: the cache itself ({rep_txt}), a {C4['exl3']['agg_tok_s_med'] if C4['exl3'] else '—'} tok/s aggregate against {C4['nvfp4']['agg_tok_s_med'] if C4['nvfp4'] else '—'} under a mixed load of four short real prompts with a first token in {C4['exl3']['ttft_med_s'] if C4['exl3'] else '—'} s against {C4['nvfp4']['ttft_med_s'] if C4['nvfp4'] else '—'} s, 4× the context, 4.7× the KV pool, and a 13-minute boot. An agent that re-sends the same long context every turn lives in the cached case. A fresh single-shot request lives in the other one.</p>
 {CAT_SECTION_HTML}
 {TP4_SECTION_HTML}
+{H2H_SECTION_HTML}
 <p><b>Boot and load time.</b> Measured on this same-state run from launch command to first <code>/health</code> 200: EXL3 {boot('exl3')}; NVFP4 {boot('nvfp4')}. NVFP4's worker reads its weights over NFS from the head on this cluster (no local copy of the base on Spark4); a local copy would put it closer to the recipe's ~15 min. Both lanes JIT-compile kernels on first boot; a wiped cache adds minutes to either.</p>
 <p><b>Memory.</b> Each lane holds ~91 GiB of weights per 121 GiB node; every failure we hit was a transient spike on top of that baseline. Drop caches on every node before every launch; <code>free -g</code> under-reports on GB10.</p>
 
@@ -423,6 +464,7 @@ The first version said EXL3 "answers first" ({e1.get('ttft_repeat_s','—')} vs 
 
 {CAT_SECTION_MD}
 {TP4_SECTION_MD}
+{H2H_SECTION_MD}
 ## Boot and load time
 Launch command → first `/health` 200, this run: EXL3 {boot('exl3')}; NVFP4 {boot('nvfp4')}. NVFP4's worker reads its
 weights over NFS from the head on this cluster (no local copy of the base on Spark4). Both JIT-compile on first boot.

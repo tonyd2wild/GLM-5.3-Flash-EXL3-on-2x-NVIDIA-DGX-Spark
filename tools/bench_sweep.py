@@ -14,6 +14,7 @@ import sys, json, time, statistics, argparse, urllib.request, concurrent.futures
 ap = argparse.ArgumentParser()
 ap.add_argument("base"); ap.add_argument("model"); ap.add_argument("label")
 ap.add_argument("--rounds", type=int, default=3); ap.add_argument("--max-c", type=int, default=6)
+ap.add_argument("--levels", default="", help="explicit concurrency ladder, e.g. 1,2,4,8,16,32,48 (overrides --max-c)")
 ap.add_argument("--out", default=None)
 a = ap.parse_args()
 URL = a.base.rstrip("/") + "/v1/chat/completions"
@@ -44,7 +45,7 @@ for _ in range(2): call(GEN, 320)
 concurrent_calls(a.max_c, GEN, 320)
 
 rows = []
-for c in range(1, a.max_c + 1):
+for c in ([int(x) for x in a.levels.split(',')] if a.levels else range(1, a.max_c + 1)):
     aggs, pers, walls = [], [], []
     for _ in range(a.rounds):
         res, wall = concurrent_calls(c, GEN, 320)

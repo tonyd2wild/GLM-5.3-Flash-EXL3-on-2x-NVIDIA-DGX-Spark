@@ -1,0 +1,80 @@
+{
+ "lane": "glmtp4",
+ "model": "glm-5.3-flash",
+ "reps": 2,
+ "rows": [
+  {
+   "target": 8000,
+   "prompt_tokens": 6899,
+   "cold_tok_s": 1974,
+   "cold_s": 3.5,
+   "warm_tok_s": 2335,
+   "warm_s": 3.0,
+   "all_tok_s": [
+    1974,
+    2335
+   ]
+  },
+  {
+   "target": 16000,
+   "prompt_tokens": 13772,
+   "cold_tok_s": 2470,
+   "cold_s": 5.6,
+   "warm_tok_s": 5598,
+   "warm_s": 2.5,
+   "all_tok_s": [
+    2470,
+    5598
+   ]
+  },
+  {
+   "target": 32000,
+   "prompt_tokens": 27518,
+   "cold_tok_s": 3023,
+   "cold_s": 9.1,
+   "warm_tok_s": 11947,
+   "warm_s": 2.3,
+   "all_tok_s": [
+    3023,
+    11947
+   ]
+  },
+  {
+   "target": 64000,
+   "prompt_tokens": 55097,
+   "cold_tok_s": 3586,
+   "cold_s": 15.4,
+   "warm_tok_s": 19927,
+   "warm_s": 2.8,
+   "all_tok_s": [
+    3586,
+    19927
+   ]
+  },
+  {
+   "target": 128000,
+   "prompt_tokens": 110255,
+   "cold_tok_s": 3796,
+   "cold_s": 29.0,
+   "warm_tok_s": 41168,
+   "warm_s": 2.7,
+   "all_tok_s": [
+    3796,
+    41168
+   ]
+  },
+  {
+   "target": 211000,
+   "prompt_tokens": 181769,
+   "cold_tok_s": 4840,
+   "cold_s": 37.6,
+   "warm_tok_s": 64923,
+   "warm_s": 2.8,
+   "all_tok_s": [
+    4840,
+    64923
+   ]
+  }
+ ],
+ "ts": "2026-09-02 16:14"
+}

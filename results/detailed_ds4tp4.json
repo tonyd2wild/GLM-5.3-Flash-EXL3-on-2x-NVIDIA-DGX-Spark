@@ -1,0 +1,1 @@
+{"label": "ds4tp4", "model": "deepseek-v4-flash-dspark", "c1_med": 97.4, "c1_min": 94.3, "c1_max": 98.5, "c6_agg_med": 383.3, "c6_agg_min": 364.0, "c6_agg_max": 402.7, "c6_per_med": 65.0, "prefill_med": 4531, "ttft_med": 0.36}

@@ -1,0 +1,29 @@
+{
+ "lane": "glmtp4",
+ "model": "glm-5.3-flash",
+ "tokens": 1600,
+ "rounds": 2,
+ "jit_first_s": [
+  0.91,
+  0.93
+ ],
+ "rows": [
+  {
+   "c": 1,
+   "ttft_med_s": 0.91,
+   "prompt_tokens": 1582,
+   "prefill_tok_s": 1748
+  },
+  {
+   "c": 8,
+   "ttft_med_s": 5.38,
+   "prompt_tokens": 1590
+  },
+  {
+   "c": 16,
+   "ttft_med_s": 11.06,
+   "prompt_tokens": 1583
+  }
+ ],
+ "ts": "2026-09-02 16:06"
+}

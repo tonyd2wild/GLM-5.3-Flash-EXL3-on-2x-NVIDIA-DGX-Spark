@@ -1,0 +1,80 @@
+{
+ "lane": "ds4tp4",
+ "model": "deepseek-v4-flash-dspark",
+ "reps": 2,
+ "rows": [
+  {
+   "target": 8000,
+   "prompt_tokens": 6890,
+   "cold_tok_s": 2412,
+   "cold_s": 2.9,
+   "warm_tok_s": 21659,
+   "warm_s": 0.3,
+   "all_tok_s": [
+    2412,
+    21659
+   ]
+  },
+  {
+   "target": 16000,
+   "prompt_tokens": 13763,
+   "cold_tok_s": 4566,
+   "cold_s": 3.0,
+   "warm_tok_s": 42310,
+   "warm_s": 0.3,
+   "all_tok_s": [
+    4566,
+    42310
+   ]
+  },
+  {
+   "target": 32000,
+   "prompt_tokens": 27509,
+   "cold_tok_s": 4638,
+   "cold_s": 5.9,
+   "warm_tok_s": 81412,
+   "warm_s": 0.3,
+   "all_tok_s": [
+    4638,
+    81412
+   ]
+  },
+  {
+   "target": 64000,
+   "prompt_tokens": 55088,
+   "cold_tok_s": 4620,
+   "cold_s": 11.9,
+   "warm_tok_s": 142444,
+   "warm_s": 0.4,
+   "all_tok_s": [
+    4620,
+    142444
+   ]
+  },
+  {
+   "target": 128000,
+   "prompt_tokens": 110246,
+   "cold_tok_s": 4290,
+   "cold_s": 25.7,
+   "warm_tok_s": 166583,
+   "warm_s": 0.7,
+   "all_tok_s": [
+    4290,
+    166583
+   ]
+  },
+  {
+   "target": 211000,
+   "prompt_tokens": 181760,
+   "cold_tok_s": 4865,
+   "cold_s": 37.4,
+   "warm_tok_s": 219646,
+   "warm_s": 0.8,
+   "all_tok_s": [
+    4865,
+    219646
+   ]
+  }
+ ],
+ "ts": "2026-09-02 15:36"
+}

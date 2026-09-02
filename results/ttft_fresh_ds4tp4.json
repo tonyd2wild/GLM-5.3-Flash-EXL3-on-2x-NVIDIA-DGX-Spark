@@ -1,0 +1,29 @@
+{
+ "lane": "ds4tp4",
+ "model": "deepseek-v4-flash-dspark",
+ "tokens": 1600,
+ "rounds": 2,
+ "jit_first_s": [
+  0.77,
+  0.81
+ ],
+ "rows": [
+  {
+   "c": 1,
+   "ttft_med_s": 0.94,
+   "prompt_tokens": 1610,
+   "prefill_tok_s": 1718
+  },
+  {
+   "c": 8,
+   "ttft_med_s": 7.3,
+   "prompt_tokens": 1605
+  },
+  {
+   "c": 16,
+   "ttft_med_s": 9.99,
+   "prompt_tokens": 1621
+  }
+ ],
+ "ts": "2026-09-02 15:31"
+}

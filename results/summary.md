@@ -1,4 +1,15 @@
-## Headline (isolated, both lanes benched simultaneously, 2026-09-01 17:34:23)
+## Headline, real prompts (how we now quote decode: prose and code, not the counting prompt)
+| | NVFP4 (Reddie + Spark4) | EXL3 (Bluey + Asusi) |
+|---|---|---|
+| prose decode, c1, tok/s (median of 3 runs; range) | 18.8 (18.8–19.8) | 19.1 (18.3–19.5) |
+| code decode, c1, tok/s (median of 3 runs; range) | 52.2 (48.3–57.7) | 48.6 (41.9–50.2) |
+| mixed real-prompt load c4: aggregate tok/s / TTFT | 31.4 / 1.97 s | 43.4 / 0.66 s |
+| time to first token, fresh 1.6K prompts, c1 / c6 | 1.29 s / 4.53 s | 2.31 s / 9.82 s |
+| cold prefill, fresh 211,001-token prompt, tok/s | 2,763 | 1,752 |
+
+Counting-prompt numbers below are the speculative-decode ceiling (the drafter's easiest sequence), kept for comparability with the recipes' own peak tests. Prefill is quoted cold only; cache replay has its own labeled row.
+
+## Counting prompt (speculative-decode ceiling), isolated, both lanes benched simultaneously, 2026-09-01 17:34:23
 | | NVFP4 (Reddie + Spark4) | EXL3 (Bluey + Asusi) | EXL3 ÷ NVFP4 |
 |---|---|---|---|
 | c1 single-stream tok/s | 64.3 | 61.8 | 1.0× |

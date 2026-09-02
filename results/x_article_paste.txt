@@ -9,7 +9,7 @@ THE SHORT VERSION
 
 Split decision, and a warning about noise.
 
-• NVFP4 is faster on fresh work. Decode 64.0 vs 61.5 tok/s single stream (+4%), +14 to 30% per stream at c2 to c5. Time to first token on fresh 1.6K prompts 1.29 vs 2.31 s at c1 and 4.5 vs 9.8 s at c6. Cold prefill on a fresh 211K-token prompt 2,763 vs 1,752 tok/s. And it is the more efficient lane: 2.43 vs 2.04 tokens per joule of GPU power under load.
+• On real prompts the two decode the same. Prose 18.8 vs 19.1 tok/s, code 52.2 vs 48.6 tok/s single stream (NVFP4 vs EXL3, median of 3 runs of the 40-prompt set). The counting prompt, which is the speculative drafter's easiest sequence and what most Spark posts quote, reads 64.0 vs 61.5 tok/s (+4%) and +14 to 30% per stream at c2 to c5; treat it as the ceiling, not the typical number. Time to first token on fresh 1.6K prompts 1.29 vs 2.31 s at c1 and 4.5 vs 9.8 s at c6. Cold prefill on a fresh 211K-token prompt 2,763 vs 1,752 tok/s. And it is the more efficient lane: 2.43 vs 2.04 tokens per joule of GPU power under load.
 
 • EXL3 wins cached context, mixed load and headroom. Its prefix cache replays a 211K-token context in 0.8 s (NVFP4: 9.2 s). In a 10-turn agent loop that re-sends a 30K-token document every turn, EXL3 answers in 1.0 s per turn to NVFP4's 4.0 s. Under a mixed load of four real prompts it does 43 vs 31 tok/s aggregate with a first token in 0.66 vs 1.97 s. It boots 1M context with a 1.40M-token KV pool (4.7x) on the same two boxes, in 13 min instead of 23.
 
@@ -47,12 +47,14 @@ HOW WE MEASURED
 
 • Clocks. Healthy GB10 decode sits near 2,180 MHz at 95% utilization. After a reboot, two nodes were pinned at 611 to 728 MHz under load. All four verified at 2,171 to 2,190 MHz under a real request before this run, and again during the power sampling.
 
+• How we quote speed (changed 2026-09-02 after a fair request from readers). Decode is quoted from real prompts, prose and code, with the counting prompt kept only as a labeled ceiling. Prefill is quoted cold only, from a fresh prompt at a fixed length, never a cached context topped up in small increments; cache replay has its own labeled row.
+
 • Fresh prompts. Every TTFT and prefill number below comes from a different prompt per request, so nothing can hit the prefix cache. Rows that say cache are the deliberate exception. Both engines JIT-compile kernels per request shape; two warm-up requests pay that first and are excluded.
 
 • Settings. Temperature 0, thinking off unless stated. Decode sweep: one counting prompt (deterministic ~300-token output, comparable to the recipe's own peak test), 3 rounds per level, 5 at c1. Counting is the easiest sequence for the DFlash2 drafter, so it is a ceiling; the real-prompt section is the floor.
 
 
-DECODE AND CONCURRENCY, c1 TO c6
+DECODE AND CONCURRENCY, c1 TO c6 (counting prompt = the speculative-decode ceiling; real-prompt decode is in the category section below)
 
 [IMAGE: chart_agg.png]
 
@@ -281,3 +283,29 @@ TP4 vs the NVFP4 TP2 lane
 • Quality: 83 / 87 / 83% across three runs of the 40 prompts (TP2 was 86 / 88 / 81), thinking on 96%, 12-item battery 11/12 off and 12/12 on. Same model, same noise band.
 
 If you have four Sparks and one model, run it as one group: decode scales almost linearly and the agent loop halves. Split into two lanes when you need two different models, or when long-prompt prefill is the bottleneck.
+
+POSTSCRIPT TWO: DEEPSEEK V4 FLASH VISION vs GLM-5.3-FLASH NVFP4, BOTH AT TP4
+
+[IMAGE: chart_h2h.png]
+
+The question after the quant comparison was which model to run on all four boxes as the daily driver. So both got the same treatment on 2026-09-02: each model alone on the four-Spark ring, tensor-parallel 4, CUDA graphs on, max-num-seqs 64, 1M context, the whole battery above, back to back, latency monitor paused, relay parked. DeepSeek runs its DSpark drafter at k=5 with Patch 4 (8.33M-token KV pool); GLM runs DFlash2 at k=7 (3.83M). Decode is quoted from real prompts first; the counting ladder is the labeled ceiling; prefill is cold only.
+
+Real prompts, single stream (DeepSeek vs GLM, tok/s)
+• Prose 42.0 vs 31.2. Narrative 44.8 vs 32.4. Code 98.3 vs 75.1. Reasoning 88.3 vs 72.5. JSON 85.4 vs 79.9. HTML 103.4 vs 94.4. Summary 61.3 vs 60.4. Format 50.3 vs 35.8.
+• Median across the 40 prompts: 74.2 vs 63.8. Auto score 87% vs 81% (same ±4-point run-to-run band as every other lane here, so read that as close).
+• Mixed load, four different prompts in flight: 94.2 vs 73.5 tok/s aggregate, first token 0.34 vs 0.94 s. Sixteen in flight: 123.9 vs 100.0 aggregate, first token 0.90 vs 2.18 s, prose per stream 20.7 vs 13.3.
+
+Counting prompt, the speculative-decode ceiling (aggregate tok/s, DeepSeek vs GLM)
+• C1 95 vs 100 (GLM +5%, and 97 vs 100 on the five-run detailed pass). C2 171 vs 121. C4 290 vs 246. C6 368 vs 308. C8 466 vs 365. C16 586 vs 392. C32 855 vs 595. C48 1,073 vs 817.
+• GLM wins the single stream by a hair and loses from C2 up, by 24% at C48. Per stream at C16: 37 vs 25.
+
+First token and prefill (fresh prompts, cold)
+• Fresh 1.6K prompts: 0.94 vs 0.91 s at C1, 7.3 vs 5.4 s at C8, 10.0 vs 11.1 s at C16.
+• Cold prefill by length: 7K tokens 2,412 vs 1,974 tok/s; 14K 4,566 vs 2,470; 28K 4,638 vs 3,023; 55K 4,620 vs 3,586; 110K 4,290 vs 3,796; 182K 4,865 vs 4,840. DeepSeek reaches its plateau by 14K; GLM climbs the whole way and only meets it at 182K.
+
+Power, sixteen streams, four nodes, 60 s
+• 545 vs 466 tok/s at 178 vs 156 W of GPU power: 3.06 vs 2.99 tokens per joule. Same efficiency, DeepSeek just does more per second.
+
+Verdict
+• DeepSeek V4 Flash Vision is the TP4 daily driver: faster on every real-prompt category, faster from two streams up, faster to first token under load, 2.2× the KV pool, and it has eyes. GLM matches it on single-stream counting, cold prefill at 182K, and tokens per joule, and edges it on reasoning and HTML scores in this run.
+• The one caveat is GLM's first-token time on the counting ladder at C2 to C6 (3 to 5 s, vs 0.3 to 0.7 for DeepSeek). We saw the same spikes on the 08-31 GLM TP4 run, so it is the engine's behavior under that load shape, not a one-off.
